@@ -708,6 +708,70 @@ select {
   .page-header h2 { font-size: 24px; }
 }
 
+/* ====== PLANNER ====== */
+.planner-progress-bar {
+  height: 8px;
+  background: var(--border-light);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.planner-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--coral), #d4774b);
+  border-radius: 4px;
+  transition: width .5s ease;
+  min-width: 0;
+}
+.planner-task {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 8px;
+  border: 1px solid transparent;
+  transition: all var(--transition);
+}
+.planner-task:hover { background: var(--cream); border-color: var(--border-light); }
+.planner-task.done { opacity: .55; }
+.planner-task-check {
+  width: 22px; height: 22px;
+  border-radius: 6px;
+  border: 2px solid var(--border);
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition);
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+}
+.planner-task-check:hover { border-color: var(--coral); }
+.planner-task-check.done { background: var(--green); border-color: var(--green); }
+.planner-task-cat {
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-weight: 700;
+  letter-spacing: .5px;
+  flex-shrink: 0;
+  text-transform: uppercase;
+}
+.cat-listening { background: rgba(45,138,86,.1); color: var(--green); }
+.cat-reading { background: rgba(11,29,58,.08); color: var(--navy); }
+.cat-writing { background: var(--coral-bg); color: var(--coral); }
+.cat-speaking { background: rgba(184,134,11,.12); color: var(--gold); }
+.cat-vocabulary { background: rgba(130,80,200,.1); color: #8250c8; }
+.cat-grammar { background: rgba(220,120,50,.1); color: #dc7832; }
+.planner-task-info { flex: 1; min-width: 0; }
+.planner-task-title { font-size: 14px; font-weight: 600; color: var(--ink); }
+.planner-task-title.done { text-decoration: line-through; color: var(--ink-muted); }
+.planner-task-desc { font-size: 12px; color: var(--ink-muted); margin-top: 1px; }
+.planner-task-day { font-size: 12px; color: var(--ink-muted); font-weight: 500; flex-shrink: 0; width: 36px; }
+.planner-task-dur { font-size: 12px; color: var(--ink-muted); font-weight: 600; flex-shrink: 0; width: 44px; text-align: right; }
+
 /* ====== LINK CARDS ====== */
 .link-card {
   display: block;
@@ -1036,23 +1100,101 @@ select {
     <div class="page" :class="{active: currentPage==='planner'}">
       <div class="page-header">
         <h2>自学规划器</h2>
-        <p>输入考试日期和目标分数，AI 自动拆解每日任务清单</p>
+        <p>输入考试日期和目标分数，自动拆解每周任务清单，逐个击破</p>
       </div>
+
+      <!-- 设置面板 -->
       <div class="card">
-        <div class="card-title" style="margin-bottom:18px;"><span class="icon-dot dot-navy"></span>设置目标</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;">
-          <div><label style="font-size:13px;color:var(--ink-muted);margin-bottom:6px;display:block;font-weight:600;">考试日期</label><input type="text" value="2026-08-15" disabled></div>
-          <div><label style="font-size:13px;color:var(--ink-muted);margin-bottom:6px;display:block;font-weight:600;">目标分数</label><select disabled><option>7.0</option></select></div>
+        <div class="card-title" style="margin-bottom:18px;"><span class="icon-dot dot-navy"></span>设定目标</div>
+
+        <!-- 第一行：日期 + 目标分 + 按钮 -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px;align-items:end;">
+          <div>
+            <label style="font-size:13px;color:var(--ink-muted);margin-bottom:6px;display:block;font-weight:600;">考试日期</label>
+            <input type="date" v-model="plannerExamDate" style="background:var(--white);">
+          </div>
+          <div>
+            <label style="font-size:13px;color:var(--ink-muted);margin-bottom:6px;display:block;font-weight:600;">目标总分</label>
+            <select v-model="plannerTargetScore" style="background:var(--white);">
+              <option v-for="s in ['5.5','6.0','6.5','7.0','7.5','8.0']" :key="s" :value="s">{{s}}</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" @click="generatePlan" :disabled="!plannerExamDate || plannerLoading">
+            {{plannerLoading ? '生成中…' : '生成学习计划'}}
+          </button>
         </div>
-        <button class="btn btn-primary" disabled>生成学习计划</button>
+
+        <!-- 第二行：四科当前基础分 -->
+        <div style="background:var(--cream);border-radius:var(--radius-sm);padding:16px 18px;border:1px solid var(--border-light);">
+          <div style="font-size:12px;color:var(--ink-muted);font-weight:600;margin-bottom:12px;">📊 当前基础分（输入最近模考或自评成绩）</div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;">
+            <div>
+              <label style="font-size:11px;color:var(--ink-muted);margin-bottom:4px;display:block;font-weight:600;">🎧 听力</label>
+              <select v-model.number="plannerBase.L" style="background:var(--white);font-size:13px;padding:8px 12px;">
+                <option v-for="s in scoreOptions" :key="'L'+s" :value="s">{{s}}</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:11px;color:var(--ink-muted);margin-bottom:4px;display:block;font-weight:600;">📖 阅读</label>
+              <select v-model.number="plannerBase.R" style="background:var(--white);font-size:13px;padding:8px 12px;">
+                <option v-for="s in scoreOptions" :key="'R'+s" :value="s">{{s}}</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:11px;color:var(--ink-muted);margin-bottom:4px;display:block;font-weight:600;">✍️ 写作</label>
+              <select v-model.number="plannerBase.W" style="background:var(--white);font-size:13px;padding:8px 12px;">
+                <option v-for="s in scoreOptions" :key="'W'+s" :value="s">{{s}}</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:11px;color:var(--ink-muted);margin-bottom:4px;display:block;font-weight:600;">🎙️ 口语</label>
+              <select v-model.number="plannerBase.S" style="background:var(--white);font-size:13px;padding:8px 12px;">
+                <option v-for="s in scoreOptions" :key="'S'+s" :value="s">{{s}}</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- 统计条 -->
+        <div v-if="plannerTasks.length > 0" style="display:flex;gap:24px;padding:16px 20px;background:var(--cream);border-radius:var(--radius-sm);border:1px solid var(--border-light);margin-top:16px;">
+          <div style="text-align:center;"><div style="font-size:24px;font-weight:800;color:var(--navy);">{{plannerStats.daysLeft}}</div><div style="font-size:11px;color:var(--ink-muted);">剩余天数</div></div>
+          <div style="text-align:center;"><div style="font-size:24px;font-weight:800;color:var(--navy);">{{plannerStats.weeksLeft}}</div><div style="font-size:11px;color:var(--ink-muted);">剩余周数</div></div>
+          <div style="text-align:center;"><div style="font-size:24px;font-weight:800;color:var(--coral);">{{plannerStats.doneCount}}/{{plannerStats.totalCount}}</div><div style="font-size:11px;color:var(--ink-muted);">已完成</div></div>
+          <div style="flex:1;min-width:120px;display:flex;flex-direction:column;justify-content:center;">
+            <div style="font-size:11px;color:var(--ink-muted);margin-bottom:4px;">整体进度</div>
+            <div class="planner-progress-bar">
+              <div class="planner-progress-fill" :style="{width: plannerStats.percent+'%'}"></div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="card coming-soon-wrap">
-        <div class="card-title" style="margin-bottom:16px;"><span class="icon-dot dot-gold"></span>今日任务示例</div>
-        <div class="task-item"><div class="task-check done"></div><span class="task-text done">完成 1 套听力真题</span><span class="task-time">30min</span></div>
-        <div class="task-item"><div class="task-check"></div><span class="task-text">精写 1 篇 Task2 大作文</span><span class="task-time">40min</span></div>
-        <div class="task-item"><div class="task-check"></div><span class="task-text">记忆 20 个环境类词汇</span><span class="task-time">15min</span></div>
-        <div class="task-item"><div class="task-check"></div><span class="task-text">口语 Part2 人物题练习 × 3</span><span class="task-time">20min</span></div>
-        <div class="overlay"><div class="coming-soon-badge">🔜 规划器即将开放</div></div>
+
+      <!-- 每周任务 -->
+      <div v-for="(week, wi) in plannerWeeks" :key="wi" class="card">
+        <div class="card-title" style="margin-bottom:16px;">
+          <span class="icon-dot" :class="week.done ? 'dot-coral' : 'dot-navy'"></span>
+          {{week.label}}
+          <span style="font-size:12px;color:var(--ink-muted);font-weight:400;margin-left:8px;">{{week.doneCount}}/{{week.tasks.length}} 完成</span>
+        </div>
+
+        <div v-for="(task, ti) in week.tasks" :key="ti" class="planner-task" :class="{done: task.done}">
+          <div class="planner-task-check" :class="{done: task.done}" @click="togglePlannerTask(wi, ti)">
+            <span v-if="task.done">✓</span>
+          </div>
+          <span class="planner-task-cat" :class="'cat-'+task.skill">{{skillLabel(task.skill)}}</span>
+          <div class="planner-task-info">
+            <div class="planner-task-title" :class="{done: task.done}">{{task.title}}</div>
+            <div class="planner-task-desc">{{task.detail}}</div>
+          </div>
+          <span class="planner-task-day">{{task.day}}</span>
+          <span class="planner-task-dur">{{task.duration}}</span>
+        </div>
+      </div>
+
+      <!-- 空状态 -->
+      <div class="card" v-if="!plannerTasks.length" style="text-align:center;padding:60px 24px;">
+        <div style="font-size:48px;margin-bottom:16px;">📅</div>
+        <p style="color:var(--ink-muted);margin-bottom:20px;">设置考试日期和目标分数，生成专属学习计划</p>
       </div>
     </div>
 
@@ -1188,6 +1330,172 @@ createApp({
     const canSubmit = computed(() => {
       return questionText.value.trim() && essayContent.value.trim() && !loading.value;
     });
+
+    // --- Planner state ---
+    const scoreOptions = [4.0,4.5,5.0,5.5,6.0,6.5,7.0,7.5,8.0,8.5,9.0];
+    const plannerExamDate = ref('');
+    const plannerTargetScore = ref('6.5');
+    const plannerBase = ref({ L: 5.5, R: 5.5, W: 5.0, S: 5.0 });
+    const plannerTasks = ref([]);
+    const plannerLoading = ref(false);
+
+    // Load from localStorage
+    const saved = localStorage.getItem('ielts_planner');
+    if (saved) {
+      try {
+        const d = JSON.parse(saved);
+        plannerExamDate.value = d.examDate || '';
+        plannerTargetScore.value = d.targetScore || '6.5';
+        if (d.base) plannerBase.value = d.base;
+        plannerTasks.value = d.tasks || [];
+      } catch {}
+    }
+
+    function savePlanner() {
+      localStorage.setItem('ielts_planner', JSON.stringify({
+        examDate: plannerExamDate.value,
+        targetScore: plannerTargetScore.value,
+        base: plannerBase.value,
+        tasks: plannerTasks.value,
+      }));
+    }
+
+    const plannerStats = computed(() => {
+      const tasks = plannerTasks.value;
+      let total = 0, done = 0;
+      tasks.forEach(w => w.tasks.forEach(t => { total++; if (t.done) done++; }));
+      const exam = new Date(plannerExamDate.value);
+      const now = new Date();
+      const daysLeft = Math.max(0, Math.ceil((exam - now) / (1000*60*60*24)));
+      return {
+        daysLeft,
+        weeksLeft: Math.ceil(daysLeft / 7),
+        doneCount: done,
+        totalCount: total,
+        percent: total ? Math.round(done / total * 100) : 0,
+      };
+    });
+
+    const plannerWeeks = computed(() => {
+      const tasks = plannerTasks.value;
+      return tasks.map(w => ({
+        ...w,
+        doneCount: w.tasks.filter(t => t.done).length,
+        done: w.tasks.every(t => t.done),
+      }));
+    });
+
+    function skillLabel(s) {
+      const map = { listening:'听力', reading:'阅读', writing:'写作', speaking:'口语', vocabulary:'词汇', grammar:'语法' };
+      return map[s] || s;
+    }
+
+    function generatePlan() {
+      if (!plannerExamDate.value) return;
+      plannerLoading.value = true;
+
+      // 计算差距和权重
+      const target = Number(plannerTargetScore.value);
+      const base = plannerBase.value;
+      const skills = [
+        { key: 'L', name: 'listening', base: base.L, emoji: '🎧' },
+        { key: 'R', name: 'reading', base: base.R, emoji: '📖' },
+        { key: 'W', name: 'writing', base: base.W, emoji: '✍️' },
+        { key: 'S', name: 'speaking', base: base.S, emoji: '🎙️' },
+      ];
+
+      // 差距越大权重越高
+      const gaps = skills.map(s => ({ ...s, gap: Math.max(0, target - s.base) }));
+      const totalGap = gaps.reduce((sum, s) => sum + s.gap, 0) || 1;
+      gaps.forEach(s => s.weight = s.gap / totalGap);
+
+      const exam = new Date(plannerExamDate.value);
+      const now = new Date();
+      const daysLeft = Math.max(7, Math.ceil((exam - now) / (1000*60*60*24)));
+      const weeksLeft = Math.ceil(daysLeft / 7);
+
+      // 每周基础任务模板
+      const taskTemplates = {
+        listening: [
+          { title: '完成 1 套听力真题', detail: '剑雅真题 Section 1-4 完整模拟', duration: '40min' },
+          { title: '精听 Section 3-4', detail: '逐句听写学术对话/独白，跟读模仿', duration: '30min' },
+          { title: '地图题专项训练', detail: 'Section 2 地图题精练 × 3 篇', duration: '25min' },
+        ],
+        reading: [
+          { title: '完成 1 套阅读真题', detail: '剑雅真题 3 篇文章限时 60 分钟', duration: '60min' },
+          { title: '长难句分析 × 5', detail: '挑真题中复杂句子拆解结构，标注主干', duration: '20min' },
+          { title: '同义替换整理', detail: '归纳本周做过的题中同义替换词对', duration: '20min' },
+        ],
+        writing: [
+          { title: '精写 1 篇 Task2 大作文', detail: '限时 40 分钟，提交 AI 批改并修订', duration: '50min' },
+          { title: 'Task1 图表题练习', detail: '线图/柱图/饼图各 1 篇提纲+主体段', duration: '30min' },
+          { title: '范文拆解分析', detail: '精读 1 篇 Band 8+ 范文，标注结构和亮点', duration: '25min' },
+        ],
+        speaking: [
+          { title: '口语 Part2 话题练习 × 2', detail: '限时 1 分钟准备 + 2 分钟录音回答', duration: '20min' },
+          { title: 'Part 3 深度讨论练习', detail: '选 3 个抽象问题，录音并回听改进', duration: '25min' },
+          { title: '影子跟读训练', detail: '跟读 BBC 6 Minute English × 2 遍', duration: '15min' },
+        ],
+        vocabulary: [
+          { title: '话题词汇记忆', detail: '按教育/科技/环境等主题各 15 个词', duration: '20min' },
+          { title: '搭配词组整理', detail: '从真题中提取 collocations 并造句', duration: '15min' },
+        ],
+      };
+
+      const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+      const plan = [];
+
+      for (let w = 0; w < weeksLeft; w++) {
+        const weekStart = new Date(now);
+        weekStart.setDate(weekStart.getDate() + w * 7);
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekEnd.getDate() + 6);
+        const fmt = d => `${d.getMonth()+1}/${d.getDate()}`;
+
+        const tasks = [];
+        // 按权重分配任务频率：writing 和 speaking 权重高则多加任务
+        const sortedByWeight = [...gaps].sort((a, b) => b.weight - a.weight);
+        const weekDays = Math.min(7, Math.max(3, daysLeft - w * 7));
+
+        // 核心四科：权重前2的科目每周 2-3 次，其余 1-2 次
+        sortedByWeight.forEach((s, idx) => {
+          const freq = idx < 2 ? 3 : 2; // top 2 skills get more focus
+          const tmpls = taskTemplates[s.name] || [];
+          for (let i = 0; i < Math.min(freq, tmpls.length); i++) {
+            const dayIdx = (tasks.length * 2 + w * 3) % weekDays;
+            tasks.push({
+              ...tmpls[i],
+              skill: s.name,
+              day: days[dayIdx],
+              done: false,
+            });
+          }
+        });
+
+        // 添加词汇任务（每周 2 次）
+        if (weeksLeft > 1) {
+          (taskTemplates.vocabulary || []).forEach((t, i) => {
+            if (i < 2) tasks.push({ ...t, skill: 'vocabulary', day: days[(tasks.length + 1) % weekDays], done: false });
+          });
+        }
+
+        plan.push({
+          label: `第 ${w + 1} 周（${fmt(weekStart)} - ${fmt(weekEnd)}）`,
+          tasks,
+        });
+      }
+
+      plannerTasks.value = plan;
+      savePlanner();
+      plannerLoading.value = false;
+    }
+
+    function togglePlannerTask(wi, ti) {
+      const task = plannerTasks.value[wi].tasks[ti];
+      task.done = !task.done;
+      plannerTasks.value = [...plannerTasks.value]; // trigger reactivity
+      savePlanner();
+    }
 
     const roadStations = [
       {name:'听力 Section 1', desc:'个人信息填空·数字·拼写', category:'listening', status:'done', xp:30},
@@ -1422,7 +1730,11 @@ In conclusion, I firmly believe that unpaid community service should be part of 
       topics, roadStations, canSubmit,
       navigate, selectTopicPreset, triggerQuestionUpload, handleQuestionUpload,
       triggerUpload, handleFileUpload, handleDrop, loadDemo,
-      submitEssay, loadHistoryItem, exportReport, copyReport
+      submitEssay, loadHistoryItem, exportReport, copyReport,
+      // Planner
+      scoreOptions, plannerExamDate, plannerTargetScore, plannerBase,
+      plannerTasks, plannerLoading, plannerStats, plannerWeeks,
+      generatePlan, togglePlannerTask, skillLabel
     };
   }
 }).mount('#app');
