@@ -647,51 +647,20 @@ In conclusion, I firmly believe that unpaid community service should be part of 
     const DEEPSEEK_KEY = 'sk-1e87c78e37644286a529c9093e3f4aaf';
     const DEEPSEEK_URL = 'https://api.deepseek.com/anthropic/v1/messages';
 
-    const CORRECTION_PROMPT = `你是一位资深雅思写作考官（IELTS Writing Examiner），拥有15年评分经验。请严格按照官方评分标准批改以下雅思作文。
+    const CORRECTION_PROMPT = `你是资深雅思写作考官。按官方标准批改作文，严格JSON输出。
 
-## 评分规则（四项独立打分，每项0-9分，允许半分）
+## 评分（四项独立，仅整数0-9，不可小数）
+1. TR 任务完成度: 立场清晰？论点充分展开有例证？
+2. CC 连贯衔接: 段落合理？衔接多样不机械？
+3. LR 词汇资源: 多样不重复？搭配自然？有低频词汇？
+4. GRA 语法范围: 简单句+复合句并存？尝试多样化结构？
 
-### 1. Task Response (TR) — 任务完成度
-- 是否完整回应了题目的所有要求？立场是否清晰一贯？
-- 主体段论点是否充分展开（有例证/解释/细节支撑）？
+总分 = 四项平均，四舍五入到最近0.5分。
 
-### 2. Coherence & Cohesion (CC) — 连贯与衔接
-- 段落结构是否合理（引言→主体→结论）？段内逻辑是否流畅？
-- 衔接手段是否多样（不依赖 Firstly/Secondly/In conclusion）？
+## JSON格式
+{"tr_score":整数,"tr_comment":"中文评语","cc_score":整数,"cc_comment":"中文评语","lr_score":整数,"lr_comment":"中文评语","gra_score":整数,"gra_comment":"中文评语","overall_band":数字,"overall_summary":"总体评价","paragraph_feedback":[{"paragraph_index":0,"original":"原文片段","highlighted_text":"HTML带<span class='highlight'>高亮</span>","comment":"段评语"}],"synonym_suggestions":[{"original":"高频词","suggestions":["升级词"],"context":"语境"}],"model_paragraph":"同话题8-9分范文段落英文"}
 
-### 3. Lexical Resource (LR) — 词汇资源
-- 词汇多样性：是否避免重复使用相同词汇？搭配是否自然？
-- 是否使用了 less common vocabulary（低频词汇/搭配）？
-
-### 4. Grammatical Range & Accuracy (GRA) — 语法范围与准确性
-- 简单句+复合句是否都有？是否尝试了多样化语法结构？
-- 语法错误频率和严重程度如何？
-
-## 总分计算：四项平均后四舍五入到最近的0.5分
-
-## 输出要求（严格JSON，不要输出其他内容）
-
-{
-  "tr_score": 数字,
-  "tr_comment": "TR评语（中文，150-300字）",
-  "cc_score": 数字,
-  "cc_comment": "CC评语（中文，150-300字）",
-  "lr_score": 数字,
-  "lr_comment": "LR评语（中文，150-300字）",
-  "gra_score": 数字,
-  "gra_comment": "GRA评语（中文，150-300字）",
-  "overall_band": 数字,
-  "overall_summary": "总体评价（中文，150-250字）",
-  "paragraph_feedback": [
-    {"paragraph_index": 0, "original": "原文片段", "highlighted_text": "带<span class='highlight'>标记</span>的HTML", "comment": "段落评语（中文）"}
-  ],
-  "synonym_suggestions": [
-    {"original": "原文高频词", "suggestions": ["升级1", "升级2", "升级3"], "context": "使用场景（中文）"}
-  ],
-  "model_paragraph": "一段同话题8-9分范文段落（英文，80-150词）"
-}
-
-关键：评分严格不要虚高，中国考生多数5.0-7.0。段落批注要具体。同义替换至少3组。`;
+评分严格不虚高，中国考生多5-7分。至少3组同义替换。`;
 
     // --- Submit ---
     async function submitEssay() {
@@ -715,8 +684,9 @@ In conclusion, I firmly believe that unpaid community service should be part of 
           },
           body: JSON.stringify({
             model: 'deepseek-v4-pro',
-            max_tokens: 4096,
+            max_tokens: 3000,
             temperature: 0.3,
+            thinking: { type: 'disabled' },
             system: CORRECTION_PROMPT,
             messages: [{ role: 'user', content: userMessage }],
           }),
