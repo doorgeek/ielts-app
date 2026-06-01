@@ -643,26 +643,130 @@ However, critics argue that forcing students to do unpaid work is unfair. They b
 In conclusion, I firmly believe that unpaid community service should be part of high school education. The life skills and social awareness gained through such programs are invaluable, and with proper implementation, the potential drawbacks can be minimized.`;
     }
 
+    // --- DeepSeek API 配置 ---
+    const DEEPSEEK_KEY = 'sk-1e87c78e37644286a529c9093e3f4aaf';
+    const DEEPSEEK_URL = 'https://api.deepseek.com/anthropic/v1/messages';
+
+    const CORRECTION_PROMPT = `你是一位资深雅思写作考官（IELTS Writing Examiner），拥有15年评分经验。请严格按照官方评分标准批改以下雅思作文。
+
+## 评分规则（四项独立打分，每项0-9分，允许半分）
+
+### 1. Task Response (TR) — 任务完成度
+- 是否完整回应了题目的所有要求？立场是否清晰一贯？
+- 主体段论点是否充分展开（有例证/解释/细节支撑）？
+
+### 2. Coherence & Cohesion (CC) — 连贯与衔接
+- 段落结构是否合理（引言→主体→结论）？段内逻辑是否流畅？
+- 衔接手段是否多样（不依赖 Firstly/Secondly/In conclusion）？
+
+### 3. Lexical Resource (LR) — 词汇资源
+- 词汇多样性：是否避免重复使用相同词汇？搭配是否自然？
+- 是否使用了 less common vocabulary（低频词汇/搭配）？
+
+### 4. Grammatical Range & Accuracy (GRA) — 语法范围与准确性
+- 简单句+复合句是否都有？是否尝试了多样化语法结构？
+- 语法错误频率和严重程度如何？
+
+## 总分计算：四项平均后四舍五入到最近的0.5分
+
+## 输出要求（严格JSON，不要输出其他内容）
+
+{
+  "tr_score": 数字,
+  "tr_comment": "TR评语（中文，150-300字）",
+  "cc_score": 数字,
+  "cc_comment": "CC评语（中文，150-300字）",
+  "lr_score": 数字,
+  "lr_comment": "LR评语（中文，150-300字）",
+  "gra_score": 数字,
+  "gra_comment": "GRA评语（中文，150-300字）",
+  "overall_band": 数字,
+  "overall_summary": "总体评价（中文，150-250字）",
+  "paragraph_feedback": [
+    {"paragraph_index": 0, "original": "原文片段", "highlighted_text": "带<span class='highlight'>标记</span>的HTML", "comment": "段落评语（中文）"}
+  ],
+  "synonym_suggestions": [
+    {"original": "原文高频词", "suggestions": ["升级1", "升级2", "升级3"], "context": "使用场景（中文）"}
+  ],
+  "model_paragraph": "一段同话题8-9分范文段落（英文，80-150词）"
+}
+
+关键：评分严格不要虚高，中国考生多数5.0-7.0。段落批注要具体。同义替换至少3组。`;
+
     // --- Submit ---
-    function submitEssay() {
+    async function submitEssay() {
       if (!questionText.value.trim()) { alert('请先输入写作题目'); return; }
       if (!essayContent.value.trim()) return;
       loading.value = true;
       correctionResult.value = null;
-      setTimeout(() => {
-        correctionResult.value = getMockCorrection();
-        loading.value = false;
+      window.scrollTo(0, 0);
+
+      try {
+        const wordCount = essayContent.value.trim().split(/\s+/).length;
+        const essayTypeLabel = essayType.value === 'task1' ? 'Task 1（图表小作文）' : 'Task 2（议论文大作文）';
+        const userMessage = `## 写作题目\n${questionText.value}\n\n## 作文类型\n${essayTypeLabel}\n\n## 考生作文（${wordCount}词）\n${essayContent.value}\n\n请按照评分标准批改这篇作文，返回JSON。`;
+
+        const response = await fetch(DEEPSEEK_URL, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${DEEPSEEK_KEY}`,
+            'Content-Type': 'application/json',
+            'anthropic-version': '2023-06-01',
+          },
+          body: JSON.stringify({
+            model: 'deepseek-v4-pro',
+            max_tokens: 4096,
+            temperature: 0.3,
+            system: CORRECTION_PROMPT,
+            messages: [{ role: 'user', content: userMessage }],
+          }),
+        });
+
+        if (!response.ok) {
+          const errText = await response.text().catch(() => '');
+          throw new Error(`API 错误 (${response.status}): ${errText.slice(0, 200)}`);
+        }
+
+        const data = await response.json();
+        const textParts = (data.content || []).filter(c => c.type === 'text').map(c => c.text);
+        const rawText = textParts.join('');
+
+        // 解析 JSON
+        let result;
+        try {
+          result = JSON.parse(rawText);
+        } catch {
+          const m = rawText.match(/```(?:json)?\s*([\s\S]*?)```/) || rawText.match(/\{[\s\S]*\}/);
+          if (m) result = JSON.parse(m[1] || m[0]);
+          else throw new Error('无法解析AI返回');
+        }
+
+        // 确保数值类型
+        ['tr_score','cc_score','lr_score','gra_score','overall_band'].forEach(k => result[k] = Number(result[k]));
+        result.paragraph_feedback = (result.paragraph_feedback || []).map((pf, i) => ({
+          ...pf, paragraph_index: pf.paragraph_index ?? i,
+          highlighted_text: pf.highlighted_text || pf.original || '',
+        }));
+        result.synonym_suggestions = result.synonym_suggestions || [];
+        result.model_paragraph = result.model_paragraph || '';
+
+        correctionResult.value = result;
         essayHistory.value.unshift({
           id: Date.now(),
           topic: selectedTopic.value || '自定义题目',
           question: questionText.value,
           type: essayType.value,
-          band: correctionResult.value.overall_band,
+          band: result.overall_band,
           date: new Date().toLocaleDateString('zh-CN'),
-          result: correctionResult.value
+          result: result
         });
         nextTick(() => { initRadarChart(); window.scrollTo(0, 0); });
-      }, 2200);
+      } catch (err) {
+        alert('批改失败：' + err.message + '\n\n请检查网络后重试。如果是AI返回格式问题，可尝试重新提交。');
+        console.error('Correction error:', err);
+      } finally {
+        loading.value = false;
+      }
     }
 
     function loadHistoryItem(item) {
@@ -709,48 +813,6 @@ In conclusion, I firmly believe that unpaid community service should be part of 
       const r = correctionResult.value;
       const t = `IELTS 写作精批报告\n━━━━━━━━━━━━\nOverall: ${r.overall_band}\nTR: ${r.tr_score} | CC: ${r.cc_score} | LR: ${r.lr_score} | GRA: ${r.gra_score}\n\n总体评价:\n${r.overall_summary}\n\n四项详评:\n[TR] ${r.tr_comment}\n[CC] ${r.cc_comment}\n[LR] ${r.lr_comment}\n[GRA] ${r.gra_comment}`;
       navigator.clipboard.writeText(t).then(() => alert('✅ 报告已复制！'));
-    }
-
-    // --- Mock AI Correction ---
-    // IELTS 官方评分规则：四项分别打整数分（0-9），总分 = 四项平均后四舍五入到最近的 0.5
-    function getMockCorrection() {
-      return {
-        tr_score: 6,
-        tr_comment: '【Band 6 描述】你提出了明确的立场（同意强制社区服务），并围绕立场展开了两个主体段论证，也提及了反方观点（让步段），回应了题目的各部分要求。然而——主体段论证深度不足，每个观点缺乏具体的例证支撑（如研究数据、真实案例或个人经历）。官方标准中 Band 7 要求"addresses all parts of the task"并"presents a clear position throughout"，你做到了后者；但"main ideas are extended and supported"这一点不够——你的主体段观点是断言式的，缺少 extension。提升建议：每个主题句后附加一个具体例子或证据，至少展开 2-3 句再过渡到下一段。',
-        cc_score: 6,
-        cc_comment: '【Band 6 描述】整体结构清晰：引言 → 两个支持段 → 让步段 → 结论，段落划分合理，每段有一个中心主题。但衔接手段较为机械——主要依赖"Firstly""Secondly""However""In conclusion"这些基础序列词，且段内句子之间的逻辑关系多靠并列而非递进/因果/对比。官方标准中 Band 7 要求"uses a range of cohesive devices appropriately"和"clear progression throughout"，你需要减少重复使用相同衔接词，引入因果连接（As a result, Consequently）、对比转折（In contrast, Nevertheless）、举例说明（For instance, A case in point is）等多种衔接手段。',
-        lr_score: 6,
-        lr_comment: '【Band 6 描述】你使用了"considerable debate""foster""empathy""cohesive society"等较好的词汇，展现出一定词汇基础，拼写正确，搭配基本合理。但——全文"community service"出现 8 次、"students"出现 7 次，大量重复暴露了词汇灵活度的短板。官方标准 Band 7 要求"uses a sufficient range of vocabulary to allow some flexibility"，即通过同义替换展示词汇弹性。同时缺少 less common vocabulary（低频搭配如"civic engagement""mandatory volunteering""compulsory unpaid work"）。提升建议：刻意练习 topic-specific vocabulary，每篇作文前准备 5-8 个相关高级词汇，写完后自查替换重复的实词。',
-        gra_score: 6,
-        gra_comment: '【Band 6 描述】你能正确使用简单句和部分复杂句——如让步状语从句（"While some argue that... I strongly believe that..."）、宾语从句（"I firmly believe that..."）。多数句子没有语法错误，时态一致，主谓搭配正确。但句型较单一，主体段大量使用"主语 + 动词 + 宾语 + that 从句"模式。官方标准 Band 7 要求"uses a variety of complex structures"——你缺少条件句（If... would...）、倒装句（Not only... but also...）、分词作状语（Having considered...）、强调句（It is... that...）等多样化结构。提升建议：刻意在每个主体段中至少使用一种"非常规"句式，逐步增加 Grammatical Range。',
-        overall_band: 6.0,
-        overall_summary: '【总分 Band 6.0 = (TR:6 + CC:6 + LR:6 + GRA:6) / 4 = 6.0】这是一篇典型的 Band 6 作文——结构完整、立场清晰、基础语法扎实，但在论证深度、衔接多样性、词汇灵活度和句型丰富度上还未达到 Band 7 的门槛。四项评分均为 6 分，说明各方面水平均衡但都处于"competent but limited"的阶段。提升到 Band 7 的关键路径：（1）每个论点用具体例证展开 2-3 句（TR）；（2）丰富衔接手段，减少机械重复（CC）；（3）减少实词重复，刻意使用 less common vocabulary（LR）；（4）每段尝试一种非常规复杂句式（GRA）。按此路径针对性练习 4-6 篇作文，Band 7 可期！',
-        paragraph_feedback: [
-          {
-            original: 'In recent years, there has been considerable debate about whether unpaid community service should be a compulsory part of high school programs. While some argue that it places an unnecessary burden on students, I strongly believe that such initiatives bring significant benefits to both young people and society as a whole.',
-            highlighted_text: 'In recent years, there has been <span class="highlight">considerable debate</span> about whether unpaid community service should be a compulsory part of high school programs. While some argue that it places an <span class="highlight">unnecessary burden</span> on students, I strongly believe that such initiatives bring <span class="highlight">significant benefits</span> to both young people and society as a whole.',
-            comment: '引言段结构正确——背景句 + 争议点 + 立场陈述。建议将 "considerable debate" 升级为 "ongoing controversy" 或 "heated discussion"，使语言更精确。立场的表述清晰，是好的开头。'
-          },
-          {
-            original: 'Firstly, compulsory community service helps students develop important life skills. Through volunteering at local charities or environmental projects, teenagers learn teamwork, communication, and time management. These skills are not easily taught in traditional classroom settings but are essential for future success.',
-            highlighted_text: 'Firstly, compulsory community service helps students develop important life skills. Through volunteering at local charities or environmental projects, teenagers learn teamwork, communication, and time management. These skills are not easily taught in traditional classroom settings <span class="highlight">but are essential for future success.</span>',
-            comment: '观点合理但缺乏具体例证。"future success" 过于模糊——什么样的成功？大学？职场？建议补充具体例子：如 "a 2019 Michigan University study found that students who participated in structured volunteering demonstrated 23% higher teamwork scores."'
-          },
-          {
-            original: 'In conclusion, I firmly believe that unpaid community service should be part of high school education. The life skills and social awareness gained through such programs are invaluable, and with proper implementation, the potential drawbacks can be minimized.',
-            highlighted_text: 'In conclusion, I firmly believe that unpaid community service should be part of high school education. The life skills and social awareness gained through such programs are <span class="highlight">invaluable</span>, and with proper implementation, <span class="highlight">the potential drawbacks can be minimized.</span>',
-            comment: '结论简洁但略显重复引言。"invaluable" 用得好！但 "the potential drawbacks can be minimized" 是一个没有展开的 claim——什么 drawbacks？如何 minimize？即使结论段也需要一定的具体性。'
-          }
-        ],
-        synonym_suggestions: [
-          { original: 'important', suggestions: ['crucial', 'essential', 'paramount', 'vital'], context: '描述生活技能的重要性' },
-          { original: 'community service', suggestions: ['volunteering', 'civic engagement', 'service learning', 'community work'], context: '全文多次出现，需替换避免重复' },
-          { original: 'students', suggestions: ['young people', 'teenagers', 'adolescents', 'learners', 'pupils'], context: '全文多次出现，需替换避免重复' },
-          { original: 'benefits', suggestions: ['advantages', 'merits', 'positive outcomes', 'gains'], context: '描述社区服务的积极影响' },
-          { original: 'develop skills', suggestions: ['acquire competencies', 'cultivate abilities', 'hone capabilities'], context: '描述学生能力提升' }
-        ],
-        model_paragraph: 'The integration of mandatory community service into secondary education curricula has emerged as a contentious yet potentially transformative proposition. Proponents contend that such initiatives cultivate not only practical competencies—ranging from interpersonal communication to project coordination—but also nurture intrinsic qualities of empathy and civic consciousness that conventional pedagogy often overlooks. Indeed, a longitudinal study conducted by the University of Michigan (2019) revealed that students who participated in structured volunteer programmes demonstrated a 23% enhancement in collaborative problem-solving abilities compared to their non-participating peers, underscoring the tangible dividends of experiential learning beyond the confines of the classroom.'
-      };
     }
 
     return {
