@@ -2740,37 +2740,35 @@ createApp({
       reader.readAsDataURL(file);
     }
 
-    // --- OCR: DeepSeek Vision (via Anthropic-compatible endpoint for CORS) ---
+    // --- OCR: DeepSeek Vision ---
+    const DEEPSEEK_CHAT_URL = 'https://api.deepseek.com/v1/chat/completions';
+
     async function performOCR(imageDataUrl, prompt) {
       ocrLoading.value = true;
       try {
-        // Extract base64 and media type from data URL
         const match = imageDataUrl.match(/^data:(image\/\w+);base64,(.+)$/);
         if (!match) throw new Error('图片格式不支持');
         const mediaType = match[1];
         const base64Data = match[2];
 
-        const response = await fetch(DEEPSEEK_URL, {
+        const response = await fetch(DEEPSEEK_CHAT_URL, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${DEEPSEEK_KEY}`,
             'Content-Type': 'application/json',
-            'anthropic-version': '2023-06-01',
           },
           body: JSON.stringify({
-            model: 'deepseek-v4-pro',
+            model: 'deepseek-chat',
             max_tokens: 2000,
             temperature: 0,
-            thinking: { type: 'disabled' },
             messages: [{
               role: 'user',
               content: [
                 {
-                  type: 'image',
-                  source: {
-                    type: 'base64',
-                    media_type: mediaType,
-                    data: base64Data,
+                  type: 'image_url',
+                  image_url: {
+                    url: `data:${mediaType};base64,${base64Data}`,
+                    detail: 'high'
                   }
                 },
                 {
@@ -2784,13 +2782,11 @@ createApp({
 
         if (!response.ok) {
           const errText = await response.text().catch(() => '');
-          throw new Error(`OCR API 错误 (${response.status}): ${errText.slice(0, 200)}`);
+          throw new Error(`OCR 错误 (${response.status}): ${errText.slice(0, 200)}`);
         }
 
         const data = await response.json();
-        // Anthropic format: content is an array of content blocks
-        const textParts = (data.content || []).filter(c => c.type === 'text').map(c => c.text);
-        return textParts.join('').trim();
+        return (data.choices?.[0]?.message?.content || '').trim();
       } catch (err) {
         alert('OCR 识别失败：' + err.message + '\n\n请检查网络后重试，或手动输入文本。');
         console.error('OCR error:', err);
