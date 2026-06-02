@@ -1139,6 +1139,50 @@ select {
   line-height: 1.7;
   font-style: italic;
 }
+
+/* Practice question list */
+.practice-question-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--white);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.practice-question-item:hover {
+  border-color: var(--navy);
+  background: rgba(11,29,58,.015);
+}
+.practice-question-item.active {
+  border-color: var(--navy);
+  background: rgba(11,29,58,.04);
+  box-shadow: 0 0 0 2px rgba(11,29,58,.04);
+}
+.pq-num {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: var(--cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink-muted);
+  flex-shrink: 0;
+}
+.practice-question-item.active .pq-num {
+  background: var(--navy);
+  color: #fff;
+}
+.pq-text {
+  font-size: 13.5px;
+  color: var(--ink);
+  line-height: 1.6;
+  flex: 1;
+}
 </style>
 </head>
 <body>
@@ -1682,18 +1726,37 @@ select {
 
       <!-- ====== TAB 2: AI 造句批改 ====== -->
       <div v-if="grammarTab==='practice'" class="sentence-practice-area">
-        <!-- 造句题目 -->
-        <div class="sentence-prompt-card">
-          <div class="prompt-label">🎯 造句任务</div>
-          <div class="prompt-text">{{sentencePrompt || '点击下方按钮获取随机造句题目'}}</div>
-          <div class="prompt-actions">
-            <button class="btn btn-sm btn-outline" @click="randomSentencePrompt">🎲 换一题</button>
-            <span style="font-size:11px;color:var(--ink-muted);align-self:center;">语法点: {{sentenceGrammarPoint}}</span>
+        <!-- 语法点选择 -->
+        <div style="margin-bottom:20px;">
+          <label style="font-size:13px;color:var(--ink);font-weight:700;margin-bottom:10px;display:block;">🎯 选择要练习的语法点</label>
+          <div class="topic-chips" style="margin-bottom:0;">
+            <button class="topic-chip" :class="{selected: practiceFilter==='all'}" @click="selectPracticeFilter('all')">🎲 全部随机</button>
+            <button v-for="(data, key) in grammarPracticeData" :key="key" class="topic-chip" :class="{selected: practiceFilter===key}" @click="selectPracticeFilter(key)">{{data.icon}} {{key}}</button>
           </div>
         </div>
 
+        <!-- 题目列表 -->
+        <div v-if="practiceQuestions.length > 0" style="margin-bottom:20px;">
+          <label style="font-size:13px;color:var(--ink);font-weight:700;margin-bottom:10px;display:block;display:flex;align-items:center;gap:8px;">
+            📝 选择题目
+            <button class="btn btn-sm btn-outline" @click="randomSentencePrompt" style="font-size:11px;">🎲 随机一题</button>
+          </label>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <div v-for="(q, i) in practiceQuestions" :key="i" class="practice-question-item" :class="{active: selectedQuestionIndex===i}" @click="selectQuestion(i)">
+              <span class="pq-num">{{i + 1}}</span>
+              <span class="pq-text">{{q}}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 当前造句题目 -->
+        <div class="sentence-prompt-card" v-if="sentencePrompt">
+          <div class="prompt-label">🎯 当前任务 <span style="font-weight:400;font-size:11px;color:var(--ink-muted);">· {{sentenceGrammarPoint}}</span></div>
+          <div class="prompt-text">{{sentencePrompt}}</div>
+        </div>
+
         <!-- 输入区 -->
-        <div class="sentence-input-area">
+        <div class="sentence-input-area" v-if="sentencePrompt">
           <label style="display:block;font-size:13px;color:var(--ink);font-weight:700;margin-bottom:10px;">你的造句 <span style="color:var(--coral);">*</span></label>
           <textarea v-model="userSentence" placeholder="在此输入你的英文句子…&#10;&#10;例如：&#10;If I had studied harder, I would have passed the exam."></textarea>
           <div class="sentence-submit-bar" style="margin-top:12px;">
@@ -2339,30 +2402,196 @@ createApp({
       selectedGrammarTopic.value = selectedGrammarTopic.value === id ? null : id;
     }
 
-    // --- Sentence prompts ---
-    const sentencePrompts = [
-      { prompt: '用第二条件句（If I were..., I would...）造一个关于职业选择的句子。', point: '第二条件句' },
-      { prompt: '用现在完成时（have/has + 过去分词）描述你学习英语的经历。', point: '现在完成时' },
-      { prompt: '用定语从句（who/which/that）描述你最喜欢的一本书或一部电影。', point: '定语从句' },
-      { prompt: '用 Not only...but also... 的倒装结构造一个关于教育益处的句子。', point: '倒装句' },
-      { prompt: '用被动语态（be + 过去分词）描述一项发明或发现的诞生过程。', point: '被动语态' },
-      { prompt: '用 Although 引导的让步状语从句表达一个关于社交媒体的观点。', point: '让步状语从句' },
-      { prompt: '用 The more..., the more... 结构造一个关于练习与进步的句子。', point: '比较结构' },
-      { prompt: '用过去完成时（had + 过去分词）描述在你某个时间点之前已经完成的事。', point: '过去完成时' },
-      { prompt: '用 It is...that... 强调句突出你认为最重要的成功因素。', point: '强调句' },
-      { prompt: '用分词短语作状语（V-ing 或 V-ed 开头）描述一个事件的前因后果。', point: '非谓语动词' },
-      { prompt: '用 suggest/recommend that... (should) do 的虚拟语气提出一个关于环保的建议。', point: '虚拟语气' },
-      { prompt: '用 so...that... 结构描述一个问题的严重程度。', point: '结果状语从句' },
-      { prompt: '用 What 引导的主语从句表达你对幸福的理解。', point: '名词性从句' },
-      { prompt: '用 as...as 同级比较结构比较城市生活和乡村生活。', point: '比较结构' },
-      { prompt: '用第三条件句（If...had done..., ...would have done...）表达一件你后悔没做的事。', point: '第三条件句' },
-    ];
+    // --- Sentence practice data ---
+    const practiceFilter = ref('all');
+    const selectedQuestionIndex = ref(-1);
+
+    const grammarPracticeData = {
+      '时态': {
+        icon: '⏰',
+        questions: [
+          '用现在完成时（have/has + 过去分词）描述你学习英语的经历，用上 since 或 for。',
+          '用过去完成时（had + 过去分词）描述一件在你毕业前已经完成的事。',
+          '用现在完成进行时（have been doing）描述你最近一直在做的备考准备。',
+          '用一般过去时描述你上周做的三件事，注意不规则动词过去式。',
+          '用将来完成时（will have done）描述到今年年底你会完成什么目标。',
+          '对比一般过去时和现在完成时：先写一句过去的事，再写一句强调对现在影响的事。',
+        ],
+      },
+      '被动语态': {
+        icon: '🔄',
+        questions: [
+          '用被动语态描述智能手机是如何制造的（用 be + 过去分词）。',
+          '用 It is believed that... 句型表达一个学术界公认的观点。',
+          '用现在完成时的被动语态（has been done）描述一项刚刚完成的研究。',
+          '用情态动词的被动语态（should be done / must be done）提一条政策建议。',
+          '用过去时的被动语态描述一个历史事件，不提及动作执行者。',
+        ],
+      },
+      '条件句': {
+        icon: '🔀',
+        questions: [
+          '用第二条件句（If I were..., I would...）造一个关于职业选择的句子。',
+          '用第一条件句（If...will...）描述如果环保政策加强会发生什么。',
+          '用第三条件句（If...had done..., ...would have done...）表达一件你后悔没做的事。',
+          '用混合条件句（过去假设 + 现在结果）描述你人生中的某个"蝴蝶效应"。',
+          '用零条件句（If + 一般现在, 一般现在）描述一条科学常识。',
+        ],
+      },
+      '定语从句': {
+        icon: '🔗',
+        questions: [
+          '用 who 引导的定语从句描述一位你敬佩的人。',
+          '用 which 引导的非限定性定语从句补充说明你的家乡。',
+          '用 whose 引导的定语从句描述一个父母是名人的孩子。',
+          '用 where 引导的定语从句描述一个你喜欢的城市或地点。',
+          '用限定性和非限定性定语从句各写一句，比较同一个主题。',
+        ],
+      },
+      '名词性从句': {
+        icon: '🧩',
+        questions: [
+          '用 What 引导的主语从句表达你对成功的理解。',
+          '用 that 引导的宾语从句表达你对教育重要性的看法。',
+          '用 The fact that... 同位语从句引出一个社会问题的背景。',
+          '用 whether 引导的主语从句表达一个尚未有定论的问题。',
+          '用 It is widely acknowledged that... 句型引出普遍共识。',
+        ],
+      },
+      '状语从句': {
+        icon: '📐',
+        questions: [
+          '用 Although 引导的让步状语从句表达一个关于社交媒体的双面观点。',
+          '用 because/since/as 引导的原因状语从句解释为什么学英语很重要。',
+          '用 so that 引导的目的状语从句表达人们为什么要节约能源。',
+          '用 while/whereas 引导的对比状语从句比较线上和线下学习。',
+          '用 as soon as / when 引导的时间状语从句描述你的日常习惯。',
+        ],
+      },
+      '倒装句': {
+        icon: '↕️',
+        questions: [
+          '用 Not only...but also... 倒装结构造句，论述阅读的好处。',
+          '用 Only by... 倒装结构表达解决某个社会问题的方法。',
+          '用 Never... 开头的倒装句表达你对某个现象的强烈感受。',
+          '用 So...that... 倒装结构描述一个问题的严重程度。',
+          '用 Under no circumstances... 倒装句强调某个行为的不可取。',
+        ],
+      },
+      '强调句': {
+        icon: '💎',
+        questions: [
+          '用 It is...that... 强调主语——强调"政府"是解决问题的关键。',
+          '用 It is...that... 强调时间状语——强调"最近几年"发生了重大变化。',
+          '用 What...is... 强调句型表达你认为生活中最重要的东西。',
+          '用 It is not...but...that... 结构纠正一个常见的误解。',
+        ],
+      },
+      '非谓语动词': {
+        icon: '🌊',
+        questions: [
+          '用现在分词短语作状语（V-ing..., 主句...）描述一个因果关系。',
+          '用过去分词短语作状语（V-ed..., 主句...）描述图表数据比较。',
+          '用不定式表目的（To do..., 主句...）提出一个解决方案。',
+          '用 Having done... 分词完成式描述一个动作先后顺序。',
+          '用动名词作主语（Doing...is...）描述一项有益的习惯。',
+        ],
+      },
+      '主谓一致': {
+        icon: '🤝',
+        questions: [
+          '用 The number of... 作主语写一个句子，注意动词用单数。',
+          '用 One of the most... 开头写一个句子，确保动词与 One 一致。',
+          '用 Neither...nor... 结构连接两个主语，注意就近原则。',
+          '用 There be 句型写一个存在句，确保 be 与后面主语一致。',
+          '用 Each of... / Every... 作主语写句子，注意动词单数。',
+        ],
+      },
+      '虚拟语气': {
+        icon: '🔮',
+        questions: [
+          '用 suggest/recommend that... (should) do 对学校提一条建议。',
+          '用 It is essential that... (should) do 强调环保的紧迫性。',
+          '用 I wish... 表达你对现状的一个不满和改进愿望。',
+          '用 If only... 表达对过去的遗憾（用过去完成时）。',
+          '用 demand/insist that... 虚拟语气写一个正式的要求。',
+        ],
+      },
+      '比较结构': {
+        icon: '⚖️',
+        questions: [
+          '用 The more..., the more... 结构造句，描述练习与进步的关系。',
+          '用 as...as 同级比较结构比较城市生活和乡村生活。',
+          '用倍数表达（twice as...as / three times more than）比较两个数据。',
+          '用 比较级 + than 比较线上购物和线下购物的优劣。',
+          '用最高级（the most / the -est）描述你经历过的最有意义的一件事。',
+        ],
+      },
+    };
+
+    const practiceQuestions = computed(() => {
+      if (practiceFilter.value === 'all') {
+        // flatten all questions with their grammar point label
+        const all = [];
+        Object.entries(grammarPracticeData).forEach(([point, data]) => {
+          data.questions.forEach(q => {
+            all.push({ text: q, point, icon: data.icon });
+          });
+        });
+        return all.map(a => `【${a.point}】${a.text}`);
+      }
+      return grammarPracticeData[practiceFilter.value]?.questions || [];
+    });
+
+    function selectPracticeFilter(key) {
+      practiceFilter.value = key;
+      selectedQuestionIndex.value = -1;
+      sentenceResult.value = null;
+
+      if (key === 'all') {
+        randomSentencePrompt();
+      } else {
+        // Auto-select first question
+        selectQuestion(0);
+      }
+    }
+
+    function selectQuestion(idx) {
+      selectedQuestionIndex.value = idx;
+      const question = practiceQuestions.value[idx];
+      if (!question) return;
+      sentencePrompt.value = question.replace(/^【.*?】/, '');
+      if (practiceFilter.value === 'all') {
+        const match = question.match(/^【(.*?)】/);
+        sentenceGrammarPoint.value = match ? match[1] : '综合练习';
+      } else {
+        sentenceGrammarPoint.value = practiceFilter.value;
+      }
+      userSentence.value = '';
+      sentenceResult.value = null;
+    }
 
     function randomSentencePrompt() {
-      const idx = Math.floor(Math.random() * sentencePrompts.length);
-      const p = sentencePrompts[idx];
-      sentencePrompt.value = p.prompt;
-      sentenceGrammarPoint.value = p.point;
+      if (practiceFilter.value === 'all') {
+        // Pick random from all grammar points
+        const points = Object.keys(grammarPracticeData);
+        const point = points[Math.floor(Math.random() * points.length)];
+        const data = grammarPracticeData[point];
+        const q = data.questions[Math.floor(Math.random() * data.questions.length)];
+        sentencePrompt.value = q;
+        sentenceGrammarPoint.value = point;
+      } else {
+        // Pick random within selected grammar point
+        const questions = practiceQuestions.value;
+        if (questions.length === 0) return;
+        const idx = Math.floor(Math.random() * questions.length);
+        selectedQuestionIndex.value = idx;
+        selectQuestion(idx);
+        return;
+      }
+      userSentence.value = '';
+      sentenceResult.value = null;
+      selectedQuestionIndex.value = -1;
     }
 
     // --- AI Sentence Check ---
@@ -2446,8 +2675,8 @@ createApp({
       }
     }
 
-    // Initialize a random prompt
-    randomSentencePrompt();
+    // Initialize with random prompt
+    selectPracticeFilter('all');
 
     function navigate(page) {
       currentPage.value = page;
@@ -2680,7 +2909,9 @@ In conclusion, I firmly believe that unpaid community service should be part of 
       // Grammar
       grammarTab, grammarTopics, selectedGrammarTopic, activeGrammarTopic,
       selectGrammarTopic, userSentence, sentenceResult, sentenceLoading,
-      sentencePrompt, sentenceGrammarPoint, randomSentencePrompt, submitSentenceCheck
+      sentencePrompt, sentenceGrammarPoint, practiceFilter, grammarPracticeData,
+      practiceQuestions, selectedQuestionIndex, selectPracticeFilter, selectQuestion,
+      randomSentencePrompt, submitSentenceCheck
     };
   }
 }).mount('#app');
