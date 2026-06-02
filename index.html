@@ -6,6 +6,7 @@
 <title>屠鸭之路 · IELTS 写作精批</title>
 <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 /* ====== DESIGN TOKENS ====== */
 :root {
@@ -1119,9 +1120,14 @@ select {
               <option v-for="s in ['5.5','6.0','6.5','7.0','7.5','8.0']" :key="s" :value="s">{{s}}</option>
             </select>
           </div>
-          <button class="btn btn-primary" @click="generatePlan" :disabled="!plannerExamDate || plannerLoading">
-            {{plannerLoading ? '生成中…' : '生成学习计划'}}
-          </button>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-primary" @click="generatePlan" :disabled="!plannerExamDate || plannerLoading">
+              {{plannerLoading ? '生成中…' : plannerTasks.length ? '重新生成' : '生成学习计划'}}
+            </button>
+            <button v-if="plannerTasks.length" class="btn btn-outline" @click="resetPlanner" style="color:var(--coral);border-color:var(--coral);">
+              ✕ 清空计划
+            </button>
+          </div>
         </div>
 
         <!-- 第二行：四科当前基础分 -->
@@ -1166,6 +1172,7 @@ select {
               <div class="planner-progress-fill" :style="{width: plannerStats.percent+'%'}"></div>
             </div>
           </div>
+          <button class="btn btn-outline btn-sm" @click="exportPlanner" style="flex-shrink:0;align-self:center;">📥 导出Excel</button>
         </div>
       </div>
 
@@ -1358,6 +1365,49 @@ createApp({
         base: plannerBase.value,
         tasks: plannerTasks.value,
       }));
+    }
+
+    function resetPlanner() {
+      if (confirm('确定要清空当前学习计划吗？清空后可以修改目标和基础分重新生成。')) {
+        plannerTasks.value = [];
+        savePlanner();
+      }
+    }
+
+    function exportPlanner() {
+      try {
+        const wb = XLSX.utils.book_new();
+        const rows = [['周次', '日期', '科目', '任务', '详情', '预计时长', '状态']];
+
+        plannerTasks.value.forEach((week, wi) => {
+          week.tasks.forEach(task => {
+            rows.push([
+              `第 ${wi + 1} 周`, week.label,
+              skillLabel(task.skill), task.title, task.detail, task.duration,
+              task.done ? '✓ 完成' : '○ 待完成'
+            ]);
+          });
+        });
+
+        // 汇总 sheet
+        rows.push([]);
+        rows.push(['汇总统计']);
+        rows.push(['剩余天数', plannerStats.value.daysLeft]);
+        rows.push(['剩余周数', plannerStats.value.weeksLeft]);
+        rows.push(['目标分数', plannerTargetScore.value]);
+        rows.push(['已完成', plannerStats.value.doneCount + '/' + plannerStats.value.totalCount]);
+        rows.push(['完成率', plannerStats.value.percent + '%']);
+
+        const ws = XLSX.utils.aoa_to_sheet(rows);
+        // 设置列宽
+        ws['!cols'] = [
+          { wch: 8 }, { wch: 22 }, { wch: 8 }, { wch: 30 }, { wch: 40 }, { wch: 10 }, { wch: 10 }
+        ];
+        XLSX.utils.book_append_sheet(wb, ws, '学习计划');
+        XLSX.writeFile(wb, '雅思学习计划_' + (plannerExamDate.value || 'plan') + '.xlsx');
+      } catch (e) {
+        alert('导出失败：' + e.message + '\n\n请确保网络正常以加载导出库。');
+      }
     }
 
     const plannerStats = computed(() => {
@@ -1734,7 +1784,7 @@ In conclusion, I firmly believe that unpaid community service should be part of 
       // Planner
       scoreOptions, plannerExamDate, plannerTargetScore, plannerBase,
       plannerTasks, plannerLoading, plannerStats, plannerWeeks,
-      generatePlan, togglePlannerTask, skillLabel
+      generatePlan, togglePlannerTask, skillLabel, resetPlanner, exportPlanner
     };
   }
 }).mount('#app');
