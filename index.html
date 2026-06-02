@@ -209,6 +209,10 @@ body {
   from { opacity:0; transform:translateY(12px); }
   to { opacity:1; transform:translateY(0); }
 }
+@keyframes spin {
+  from { transform:rotate(0deg); }
+  to { transform:rotate(360deg); }
+}
 
 /* ====== PAGE HEADER ====== */
 .page-header { margin-bottom: 36px; }
@@ -1301,6 +1305,13 @@ select {
             <img :src="questionImage" alt="题目图片">
             <button class="btn btn-sm btn-ghost" style="position:absolute;top:6px;right:6px;background:var(--white);" @click="questionImage=null;">✕ 移除</button>
           </div>
+          <div v-if="ocrLoading" class="ocr-card">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span style="font-size:20px;">🔍</span>
+              <span style="font-size:14px;color:var(--navy);font-weight:600;">AI 正在识别图片文字…</span>
+              <span style="font-size:18px;animation: spin 1s linear infinite;">⏳</span>
+            </div>
+          </div>
           <div v-if="questionOcrText" class="ocr-card">
             <div style="font-size:13px;color:var(--navy);font-weight:700;margin-bottom:8px;">🔍 AI 识别题目结果（可编辑校对）</div>
             <textarea v-model="questionOcrText" style="min-height:80px;background:var(--white);"></textarea>
@@ -1326,6 +1337,13 @@ select {
           <div v-if="uploadedImage" class="upload-preview">
             <img :src="uploadedImage" alt="上传预览">
             <button class="btn btn-sm btn-ghost" style="position:absolute;top:6px;right:6px;background:var(--white);" @click="uploadedImage=null;ocrText='';">✕ 移除</button>
+          </div>
+          <div v-if="ocrLoading && uploadedImage" class="ocr-card">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span style="font-size:20px;">🔍</span>
+              <span style="font-size:14px;color:var(--navy);font-weight:600;">AI 正在识别图片文字…</span>
+              <span style="font-size:18px;animation: spin 1s linear infinite;">⏳</span>
+            </div>
           </div>
           <div v-if="ocrText" class="ocr-card">
             <div style="font-size:13px;color:var(--navy);font-weight:700;margin-bottom:8px;">🔍 AI 识别结果（可编辑校对后确认）</div>
@@ -1871,6 +1889,7 @@ createApp({
     const correctionResult = ref(null);
     const radarChart = ref(null);
     const essayHistory = ref([]);
+    const ocrLoading = ref(false);
 
     const topics = [
       { label: '教育 · 强制社区服务', question: 'Some people believe that unpaid community service should be a compulsory part of high school programs. To what extent do you agree or disagree?' },
@@ -2697,12 +2716,10 @@ createApp({
       if (!f) return;
       if (!f.type.match(/image\/(jpeg|png|webp)/)) { alert('请上传 JPG/PNG/WebP 格式'); return; }
       const reader = new FileReader();
-      reader.onload = (ev) => {
+      reader.onload = async (ev) => {
         questionImage.value = ev.target.result;
-        setTimeout(() => {
-          questionOcrText.value = `[AI 识别题目（模拟）]
-Some people believe that unpaid community service should be a compulsory part of high school programs. To what extent do you agree or disagree?`;
-        }, 800);
+        const text = await performOCR(ev.target.result, 'Please extract ALL English text from this image exactly as written. Return ONLY the transcribed text with no extra commentary or markdown.');
+        if (text) questionOcrText.value = text;
       };
       reader.readAsDataURL(f);
     }
@@ -2715,23 +2732,72 @@ Some people believe that unpaid community service should be a compulsory part of
     function processImage(file) {
       if (!file.type.match(/image\/(jpeg|png|webp)/)) { alert('请上传 JPG/PNG/WebP 格式'); return; }
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         uploadedImage.value = e.target.result;
-        setTimeout(() => {
-          ocrText.value = `[AI 识别结果（模拟 DeepSeek Vision）]
-
-In recent years, there has been considerable debate about whether unpaid community service should be a compulsory part of high school programs. While some argue that it places an unnecessary burden on students, I strongly believe that such initiatives bring significant benefits to both young people and society as a whole.
-
-Firstly, compulsory community service helps students develop important life skills. Through volunteering at local charities or environmental projects, teenagers learn teamwork, communication, and time management.
-
-Secondly, such programs foster a sense of social responsibility. When young people engage with their local communities, they become more aware of social issues and develop empathy for others.
-
-However, critics argue that forcing students to do unpaid work is unfair and that community service should be voluntary.
-
-In conclusion, I firmly believe that unpaid community service should be part of high school education because the life skills and social awareness gained are invaluable.`;
-        }, 1000);
+        const text = await performOCR(e.target.result, 'Please extract ALL English text from this image exactly as written, preserving paragraph structure. Return ONLY the transcribed text with no extra commentary or markdown.');
+        if (text) ocrText.value = text;
       };
       reader.readAsDataURL(file);
+    }
+
+    // --- OCR: DeepSeek Vision (via Anthropic-compatible endpoint for CORS) ---
+    async function performOCR(imageDataUrl, prompt) {
+      ocrLoading.value = true;
+      try {
+        // Extract base64 and media type from data URL
+        const match = imageDataUrl.match(/^data:(image\/\w+);base64,(.+)$/);
+        if (!match) throw new Error('图片格式不支持');
+        const mediaType = match[1];
+        const base64Data = match[2];
+
+        const response = await fetch(DEEPSEEK_URL, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${DEEPSEEK_KEY}`,
+            'Content-Type': 'application/json',
+            'anthropic-version': '2023-06-01',
+          },
+          body: JSON.stringify({
+            model: 'deepseek-v4-pro',
+            max_tokens: 2000,
+            temperature: 0,
+            thinking: { type: 'disabled' },
+            messages: [{
+              role: 'user',
+              content: [
+                {
+                  type: 'image',
+                  source: {
+                    type: 'base64',
+                    media_type: mediaType,
+                    data: base64Data,
+                  }
+                },
+                {
+                  type: 'text',
+                  text: prompt
+                }
+              ]
+            }]
+          }),
+        });
+
+        if (!response.ok) {
+          const errText = await response.text().catch(() => '');
+          throw new Error(`OCR API 错误 (${response.status}): ${errText.slice(0, 200)}`);
+        }
+
+        const data = await response.json();
+        // Anthropic format: content is an array of content blocks
+        const textParts = (data.content || []).filter(c => c.type === 'text').map(c => c.text);
+        return textParts.join('').trim();
+      } catch (err) {
+        alert('OCR 识别失败：' + err.message + '\n\n请检查网络后重试，或手动输入文本。');
+        console.error('OCR error:', err);
+        return null;
+      } finally {
+        ocrLoading.value = false;
+      }
     }
 
     // --- Demo ---
@@ -2897,7 +2963,7 @@ In conclusion, I firmly believe that unpaid community service should be part of 
       currentPage, sidebarOpen, loading,
       essayType, selectedTopic, showCustomQuestion, questionText, questionImage, questionOcrText, questionFileInput,
       essayContent, uploadedImage, ocrText, fileInput,
-      correctionResult, radarChart, essayHistory,
+      correctionResult, radarChart, essayHistory, ocrLoading,
       topics, roadStations, canSubmit,
       navigate, selectTopicPreset, triggerQuestionUpload, handleQuestionUpload,
       triggerUpload, handleFileUpload, handleDrop, loadDemo,
