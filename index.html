@@ -7,6 +7,7 @@
 <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
 /* ====== DESIGN TOKENS ====== */
 :root {
@@ -2740,53 +2741,27 @@ createApp({
       reader.readAsDataURL(file);
     }
 
-    // --- OCR: DeepSeek Vision ---
-    const DEEPSEEK_CHAT_URL = 'https://api.deepseek.com/v1/chat/completions';
+    // --- OCR: Tesseract.js browser-based recognition ---
+    let ocrWorker = null;
+
+    async function getOCRWorker() {
+      if (ocrWorker) return ocrWorker;
+      ocrWorker = await Tesseract.createWorker('eng', 1, {
+        logger: m => {
+          if (m.status === 'recognizing text') {
+            // progress available via m.progress (0-1)
+          }
+        }
+      });
+      return ocrWorker;
+    }
 
     async function performOCR(imageDataUrl, prompt) {
       ocrLoading.value = true;
       try {
-        const match = imageDataUrl.match(/^data:(image\/\w+);base64,(.+)$/);
-        if (!match) throw new Error('图片格式不支持');
-        const mediaType = match[1];
-        const base64Data = match[2];
-
-        const response = await fetch(DEEPSEEK_CHAT_URL, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${DEEPSEEK_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'deepseek-chat',
-            max_tokens: 2000,
-            temperature: 0,
-            messages: [{
-              role: 'user',
-              content: [
-                {
-                  type: 'image_url',
-                  image_url: {
-                    url: `data:${mediaType};base64,${base64Data}`,
-                    detail: 'high'
-                  }
-                },
-                {
-                  type: 'text',
-                  text: prompt
-                }
-              ]
-            }]
-          }),
-        });
-
-        if (!response.ok) {
-          const errText = await response.text().catch(() => '');
-          throw new Error(`OCR 错误 (${response.status}): ${errText.slice(0, 200)}`);
-        }
-
-        const data = await response.json();
-        return (data.choices?.[0]?.message?.content || '').trim();
+        const worker = await getOCRWorker();
+        const { data: { text } } = await worker.recognize(imageDataUrl);
+        return text.trim();
       } catch (err) {
         alert('OCR 识别失败：' + err.message + '\n\n请检查网络后重试，或手动输入文本。');
         console.error('OCR error:', err);
