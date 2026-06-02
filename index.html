@@ -808,6 +808,337 @@ select {
 .empty-state { text-align: center; padding: 60px 24px; }
 .empty-state .empty-icon { font-size: 48px; margin-bottom: 16px; }
 .empty-state p { color: var(--ink-muted); font-size: 14px; margin-bottom: 20px; }
+
+/* ====== GRAMMAR SECTION ====== */
+.grammar-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 28px;
+  background: var(--cream);
+  border-radius: 10px;
+  padding: 5px;
+  border: 1px solid var(--border);
+}
+.grammar-tab {
+  flex: 1;
+  padding: 12px 20px;
+  text-align: center;
+  cursor: pointer;
+  border-radius: 7px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all var(--transition);
+  color: var(--ink-light);
+  border: none;
+  background: transparent;
+  font-family: inherit;
+}
+.grammar-tab.active {
+  background: var(--white);
+  color: var(--navy);
+  font-weight: 700;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Grammar topic cards */
+.grammar-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+.grammar-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  cursor: pointer;
+  transition: all var(--transition);
+  position: relative;
+}
+.grammar-card:hover {
+  border-color: var(--navy);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+.grammar-card.selected {
+  border-color: var(--navy);
+  box-shadow: 0 0 0 3px rgba(11,29,58,.06);
+}
+.grammar-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+.grammar-card-icon {
+  width: 44px; height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+.gc-icon-tenses { background: rgba(192,57,43,.08); }
+.gc-icon-passive { background: rgba(45,138,86,.08); }
+.gc-icon-conditional { background: rgba(184,134,11,.08); }
+.gc-icon-relative { background: rgba(11,29,58,.06); }
+.gc-icon-nounclause { background: rgba(130,80,200,.08); }
+.gc-icon-adverbial { background: rgba(220,120,50,.08); }
+.gc-icon-inversion { background: rgba(45,138,86,.08); }
+.gc-icon-cleft { background: rgba(192,57,43,.08); }
+.gc-icon-nonfinite { background: rgba(184,134,11,.08); }
+.gc-icon-agreement { background: rgba(11,29,58,.06); }
+.gc-icon-subjunctive { background: rgba(130,80,200,.08); }
+.gc-icon-comparative { background: rgba(220,120,50,.08); }
+.grammar-card-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 3px;
+}
+.grammar-card-subtitle {
+  font-size: 12px;
+  color: var(--ink-muted);
+  font-weight: 500;
+}
+.grammar-card-level {
+  font-size: 10px;
+  padding: 3px 10px;
+  border-radius: 10px;
+  font-weight: 700;
+  letter-spacing: .5px;
+  background: var(--cream);
+  color: var(--ink-muted);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+.grammar-card-summary {
+  font-size: 13px;
+  color: var(--ink-light);
+  line-height: 1.6;
+}
+
+/* Grammar detail panel */
+.grammar-detail {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 32px;
+  margin-top: 20px;
+  animation: fadeUp .3s ease;
+}
+.grammar-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border-light);
+}
+.grammar-detail-header h3 {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--navy);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.grammar-detail-header h3 .gd-icon {
+  font-size: 28px;
+}
+.grammar-detail-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+@media(max-width:768px) {
+  .grammar-detail-body { grid-template-columns: 1fr; }
+}
+.grammar-detail-block h4 {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.grammar-detail-block h4 .dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.grammar-rule {
+  font-size: 13px;
+  color: var(--ink-light);
+  line-height: 1.8;
+  margin-bottom: 12px;
+  padding: 14px 16px;
+  background: var(--cream);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-light);
+}
+.grammar-example {
+  font-size: 14px;
+  padding: 12px 16px;
+  background: rgba(45,138,86,.04);
+  border-left: 3px solid var(--green);
+  border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+  margin-bottom: 8px;
+  line-height: 1.6;
+}
+.grammar-example .en {
+  color: var(--navy);
+  font-weight: 600;
+  font-style: italic;
+}
+.grammar-example .zh {
+  font-size: 12px;
+  color: var(--ink-muted);
+  margin-top: 2px;
+}
+.grammar-mistake {
+  font-size: 13px;
+  padding: 10px 14px;
+  background: rgba(192,57,43,.04);
+  border-left: 3px solid var(--coral);
+  border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+  margin-bottom: 8px;
+  line-height: 1.6;
+}
+.grammar-mistake .wrong {
+  color: var(--coral);
+  text-decoration: line-through;
+  margin-right: 4px;
+}
+.grammar-mistake .correct {
+  color: var(--green);
+  font-weight: 600;
+}
+
+/* AI sentence practice */
+.sentence-practice-area {
+  max-width: 780px;
+  margin: 0 auto;
+}
+.sentence-prompt-card {
+  background: var(--gold-bg);
+  border: 1px solid rgba(184,134,11,.15);
+  border-radius: var(--radius);
+  padding: 22px 24px;
+  margin-bottom: 24px;
+}
+.sentence-prompt-card .prompt-label {
+  font-size: 11px;
+  color: var(--gold);
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.sentence-prompt-card .prompt-text {
+  font-size: 15px;
+  color: var(--navy);
+  font-weight: 600;
+  line-height: 1.6;
+}
+.prompt-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+.sentence-input-area {
+  margin-bottom: 24px;
+}
+.sentence-input-area textarea {
+  min-height: 100px;
+  font-size: 15px;
+  background: var(--white);
+}
+.sentence-submit-bar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+/* Sentence result */
+.sentence-result {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px;
+  margin-top: 24px;
+  animation: fadeUp .3s ease;
+}
+.sentence-result-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-light);
+}
+.sr-score {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.sr-score-text {
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: -1px;
+}
+.sr-score-label {
+  font-size: 10px;
+  color: var(--ink-muted);
+  font-weight: 600;
+  margin-top: 2px;
+}
+.sr-result-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--navy);
+}
+.sr-result-subtitle {
+  font-size: 12px;
+  color: var(--ink-muted);
+  margin-top: 2px;
+}
+.sr-section {
+  margin-bottom: 20px;
+}
+.sr-section:last-child { margin-bottom: 0; }
+.sr-section h5 {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.sr-section .content {
+  font-size: 14px;
+  color: var(--ink-light);
+  line-height: 1.8;
+  padding-left: 20px;
+  border-left: 2px solid var(--border-light);
+}
+.sr-corrected {
+  background: rgba(45,138,86,.04);
+  border: 1px solid rgba(45,138,86,.12);
+  border-radius: var(--radius-sm);
+  padding: 16px 20px;
+  font-size: 15px;
+  color: var(--green);
+  font-weight: 600;
+  line-height: 1.7;
+  font-style: italic;
+}
 </style>
 </head>
 <body>
@@ -839,8 +1170,8 @@ select {
         <div class="nav-item disabled">
           <span class="nav-icon">🎧</span> 听力自习室 <span class="badge badge-soon">即将推出</span>
         </div>
-        <div class="nav-item disabled">
-          <span class="nav-icon">📚</span> 单词与语法 <span class="badge badge-soon">即将推出</span>
+        <div class="nav-item" :class="{active: currentPage==='grammar'}" @click="navigate('grammar')">
+          <span class="nav-icon">📚</span> 单词与语法 <span class="badge badge-ready">语法</span>
         </div>
       </div>
       <div class="nav-section">
@@ -1270,6 +1601,163 @@ select {
       </div>
     </div>
 
+    <!-- ====== 单词与语法 ====== -->
+    <div class="page" :class="{active: currentPage==='grammar'}">
+      <div class="page-header">
+        <h2>单词与语法</h2>
+        <p>系统学习英语核心语法点，配合 AI 造句批改功能，精准提升语法准确性</p>
+      </div>
+
+      <!-- 语法 Tab 切换 -->
+      <div class="grammar-tabs">
+        <button class="grammar-tab" :class="{active: grammarTab==='browse'}" @click="grammarTab='browse';selectedGrammarTopic=null;">📖 语法知识点</button>
+        <button class="grammar-tab" :class="{active: grammarTab==='practice'}" @click="grammarTab='practice';">✏️ AI 造句批改</button>
+      </div>
+
+      <!-- ====== TAB 1: 语法知识点 ====== -->
+      <div v-if="grammarTab==='browse'">
+        <!-- 知识点卡片网格 -->
+        <div class="grammar-grid">
+          <div v-for="t in grammarTopics" :key="t.id" class="grammar-card" :class="{selected: selectedGrammarTopic===t.id}" @click="selectGrammarTopic(t.id)">
+            <div class="grammar-card-header">
+              <div class="grammar-card-icon" :class="'gc-icon-'+t.id">
+                <span>{{t.icon}}</span>
+              </div>
+              <div style="flex:1;min-width:0;">
+                <div class="grammar-card-title">{{t.title}}</div>
+                <div class="grammar-card-subtitle">{{t.subtitle}}</div>
+              </div>
+              <span class="grammar-card-level">{{t.level}}</span>
+            </div>
+            <div class="grammar-card-summary">{{t.summary}}</div>
+          </div>
+        </div>
+
+        <!-- 知识点详情面板 -->
+        <div v-if="activeGrammarTopic" class="grammar-detail">
+          <div class="grammar-detail-header">
+            <h3>
+              <span class="gd-icon">{{activeGrammarTopic.icon}}</span>
+              {{activeGrammarTopic.title}}
+              <span style="font-size:12px;color:var(--ink-muted);font-weight:400;margin-left:8px;">{{activeGrammarTopic.subtitle}}</span>
+            </h3>
+            <button class="btn btn-sm btn-ghost" @click="selectedGrammarTopic=null;">✕ 关闭</button>
+          </div>
+          <div class="grammar-detail-body">
+            <!-- 核心规则 -->
+            <div class="grammar-detail-block">
+              <h4><span class="dot" style="background:var(--navy);"></span>核心规则</h4>
+              <div class="grammar-rule" v-html="activeGrammarTopic.rules"></div>
+            </div>
+            <!-- 正确例句 -->
+            <div class="grammar-detail-block">
+              <h4><span class="dot" style="background:var(--green);"></span>正确例句</h4>
+              <div v-for="(ex, i) in activeGrammarTopic.examples" :key="i" class="grammar-example">
+                <div class="en">{{ex.en}}</div>
+                <div class="zh">{{ex.zh}}</div>
+              </div>
+            </div>
+            <!-- 常见错误 -->
+            <div class="grammar-detail-block">
+              <h4><span class="dot" style="background:var(--coral);"></span>常见错误</h4>
+              <div v-for="(m, i) in activeGrammarTopic.mistakes" :key="i" class="grammar-mistake">
+                <div><span class="wrong">{{m.wrong}}</span> → <span class="correct">{{m.correct}}</span></div>
+                <div style="font-size:12px;color:var(--ink-muted);margin-top:3px;">{{m.note}}</div>
+              </div>
+            </div>
+            <!-- 雅思考试中的应用 -->
+            <div class="grammar-detail-block">
+              <h4><span class="dot" style="background:var(--gold);"></span>IELTS 考点提示</h4>
+              <div class="grammar-rule" v-html="activeGrammarTopic.ieltsTip"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 未选中的空状态 -->
+        <div v-if="!activeGrammarTopic" style="text-align:center;padding:40px 24px;">
+          <div style="font-size:40px;margin-bottom:12px;">👆</div>
+          <p style="color:var(--ink-muted);font-size:14px;">点击上方卡片查看详细语法讲解</p>
+        </div>
+      </div>
+
+      <!-- ====== TAB 2: AI 造句批改 ====== -->
+      <div v-if="grammarTab==='practice'" class="sentence-practice-area">
+        <!-- 造句题目 -->
+        <div class="sentence-prompt-card">
+          <div class="prompt-label">🎯 造句任务</div>
+          <div class="prompt-text">{{sentencePrompt || '点击下方按钮获取随机造句题目'}}</div>
+          <div class="prompt-actions">
+            <button class="btn btn-sm btn-outline" @click="randomSentencePrompt">🎲 换一题</button>
+            <span style="font-size:11px;color:var(--ink-muted);align-self:center;">语法点: {{sentenceGrammarPoint}}</span>
+          </div>
+        </div>
+
+        <!-- 输入区 -->
+        <div class="sentence-input-area">
+          <label style="display:block;font-size:13px;color:var(--ink);font-weight:700;margin-bottom:10px;">你的造句 <span style="color:var(--coral);">*</span></label>
+          <textarea v-model="userSentence" placeholder="在此输入你的英文句子…&#10;&#10;例如：&#10;If I had studied harder, I would have passed the exam."></textarea>
+          <div class="sentence-submit-bar" style="margin-top:12px;">
+            <button class="btn btn-primary" @click="submitSentenceCheck" :disabled="!userSentence.trim() || sentenceLoading">
+              {{sentenceLoading ? '⏳ AI 批改中…' : '提交批改'}}
+            </button>
+            <button class="btn btn-outline btn-sm" @click="userSentence='';sentenceResult=null;">✕ 清空</button>
+            <span style="font-size:12px;color:var(--ink-muted);">词数 {{userSentence.trim() ? userSentence.trim().split(/\s+/).length : 0}}</span>
+          </div>
+        </div>
+
+        <!-- 批改结果 -->
+        <div v-if="sentenceResult" class="sentence-result">
+          <div class="sentence-result-header">
+            <div class="sr-score" :style="{background: sentenceResult.score>=8 ? 'rgba(45,138,86,.12)' : sentenceResult.score>=6 ? 'rgba(184,134,11,.12)' : 'rgba(192,57,43,.12)'}">
+              <div style="text-align:center;">
+                <div class="sr-score-text" :style="{color: sentenceResult.score>=8 ? 'var(--green)' : sentenceResult.score>=6 ? 'var(--gold)' : 'var(--coral)'}">{{sentenceResult.score}}</div>
+                <div class="sr-score-label">/ 10 分</div>
+              </div>
+            </div>
+            <div>
+              <div class="sr-result-title">{{sentenceResult.score>=8 ? '👍 非常棒！' : sentenceResult.score>=6 ? '📝 还不错，略有小误' : '🔧 需要改进'}}</div>
+              <div class="sr-result-subtitle">{{sentenceResult.summary}}</div>
+            </div>
+          </div>
+
+          <!-- 原文 -->
+          <div class="sr-section">
+            <h5>📝 你的原句</h5>
+            <div class="content">{{sentenceResult.original}}</div>
+          </div>
+
+          <!-- 修改后 -->
+          <div class="sr-section">
+            <h5>✅ 修改建议</h5>
+            <div class="sr-corrected">{{sentenceResult.corrected}}</div>
+          </div>
+
+          <!-- 语法点评 -->
+          <div class="sr-section">
+            <h5>🔍 语法点评</h5>
+            <div class="content" v-html="sentenceResult.feedback"></div>
+          </div>
+
+          <!-- 同义表达 -->
+          <div class="sr-section" v-if="sentenceResult.alternatives && sentenceResult.alternatives.length">
+            <h5>💡 同义表达</h5>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;">
+              <span v-for="a in sentenceResult.alternatives" :key="a" style="background:var(--cream);padding:8px 14px;border-radius:8px;font-size:13px;color:var(--navy);border:1px solid var(--border-light);font-style:italic;">{{a}}</span>
+            </div>
+          </div>
+
+          <button class="btn btn-outline btn-sm" style="margin-top:20px;" @click="sentenceResult=null;userSentence='';">🔄 再来一题</button>
+        </div>
+
+        <!-- 空状态 -->
+        <div v-if="!sentenceResult && !userSentence.trim()" style="text-align:center;padding:40px 24px;">
+          <div style="font-size:48px;margin-bottom:12px;">✏️</div>
+          <p style="color:var(--ink-muted);font-size:14px;margin-bottom:8px;">输入英文句子，AI 将帮你检查语法并给出改进建议</p>
+          <p style="font-size:12px;color:var(--ink-muted);">支持各种语法结构的句子，AI 会从准确性、多样性和自然度三个方面进行评估</p>
+        </div>
+      </div>
+    </div>
+
     <!-- ====== 历史记录 ====== -->
     <div class="page" :class="{active: currentPage==='history'}">
       <div class="page-header">
@@ -1557,6 +2045,410 @@ createApp({
       {name:'Task2 高频话题', desc:'教育·科技·环境·社会', category:'writing', status:'locked', xp:70},
     ];
 
+    // --- Grammar state ---
+    const grammarTab = ref('browse');
+    const selectedGrammarTopic = ref(null);
+    const userSentence = ref('');
+    const sentenceResult = ref(null);
+    const sentenceLoading = ref(false);
+    const sentencePrompt = ref('');
+    const sentenceGrammarPoint = ref('');
+
+    const grammarTopics = [
+      {
+        id: 'tenses', icon: '⏰', title: '时态', subtitle: 'Tenses & Aspects', level: 'B1',
+        summary: '英语 12 种核心时态的构成与使用场景，重点是过去时与完成时的区分。',
+        rules: `<p>英语时态 = <strong>时间</strong>（过去/现在/将来）+ <strong>体</strong>（一般/进行/完成/完成进行）。</p>
+          <p style="margin-top:10px;"><strong>一般现在时：</strong>表示习惯、事实、真理。第三人称单数动词加 -s。</p>
+          <p><strong>一般过去时：</strong>表示过去已完成的动作。规则动词加 -ed，不规则需单独记忆。</p>
+          <p><strong>现在完成时 (have/has + 过去分词)：</strong>强调过去动作对现在的影响或持续到现在的状态。<em>与一般过去时的区别：现在完成时关注"结果/影响"，过去时关注"时间点"。</em></p>
+          <p><strong>过去完成时 (had + 过去分词)：</strong>"过去的过去"——在某一过去时间点之前已完成的动作。</p>
+          <p><strong>将来时：</strong>will + 动词原形（预测/意愿）；be going to（计划/迹象）；现在进行时表将来（已安排好的事）。</p>`,
+        examples: [
+          { en: 'The graph shows a steady increase in CO₂ emissions over the last decade.', zh: '该图表显示过去十年 CO₂ 排放量稳步上升（一般现在时描述图表）' },
+          { en: 'By 2020, the population had already reached 8 billion.', zh: '到 2020 年，人口已经达到了 80 亿（过去完成时——"过去的过去"）' },
+          { en: 'I have lived in Beijing for five years / since 2020.', zh: '我已经在北京住了五年/自 2020 年以来（现在完成时，持续状态）' },
+          { en: 'The number of international students has risen dramatically.', zh: '国际学生数量急剧上升（现在完成时，强调对现在的影响）' },
+        ],
+        mistakes: [
+          { wrong: 'I am living here since 2019.', correct: 'I have lived here since 2019.', note: 'since + 时间点 → 现在完成时，不是现在进行时' },
+          { wrong: 'The chart is showing a trend.', correct: 'The chart shows a trend.', note: '图表描述用一般现在时，不用进行时' },
+          { wrong: 'I didn\'t seen him yesterday.', correct: 'I didn\'t see him yesterday.', note: 'did + 否定 → 动词恢复原形' },
+        ],
+        ieltsTip: `<p>📊 <strong>Writing Task 1：</strong>描述图表趋势用一般现在时；描述过去数据用一般过去时；对比"到某时间点为止"用过去完成时。</p>
+          <p style="margin-top:6px;">📝 <strong>Writing Task 2：</strong>论述观点用一般现在时；举例说明过去的例子用过去时；条件/假设用虚拟语气（见条件句专题）。</p>`,
+      },
+      {
+        id: 'passive', icon: '🔄', title: '被动语态', subtitle: 'Passive Voice', level: 'B1',
+        summary: 'be + 过去分词，学术写作中极为重要——当动作执行者不重要或未知时使用。',
+        rules: `<p><strong>结构：be (am/is/are/was/were/been/being) + 过去分词</strong></p>
+          <p style="margin-top:10px;"><strong>何时使用被动语态：</strong></p>
+          <p>1. 动作执行者未知或不重要：<em>The window was broken.</em></p>
+          <p>2. 强调动作的承受者而非执行者：<em>The vaccine was developed in 2020.</em></p>
+          <p>3. 学术/正式写作中保持客观语气：<em>It is widely believed that...</em></p>
+          <p>4. 流程/步骤描述：<em>The mixture is heated to 100°C.</em></p>
+          <p style="margin-top:10px;"><strong>各时态被动语态举例：</strong></p>
+          <p>现在: The report <strong>is written</strong> by experts. | 过去: The report <strong>was written</strong> last year.</p>
+          <p>完成: The report <strong>has been written</strong>. | 将来: The report <strong>will be written</strong>.</p>`,
+        examples: [
+          { en: 'It is generally accepted that climate change is caused by human activities.', zh: '人们普遍认为气候变化是由人类活动引起的。' },
+          { en: 'The samples were collected from three different locations.', zh: '样本从三个不同地点采集（学术报告常用被动）。' },
+          { en: 'Measures should be taken to address this issue.', zh: '应该采取措施来解决这个问题（Task 2 万能句型）。' },
+        ],
+        mistakes: [
+          { wrong: 'The book was wrote by him.', correct: 'The book was written by him.', note: '被动语态是 be + 过去分词，不是过去式' },
+          { wrong: 'It is believe that...', correct: 'It is believed that...', note: 'It is + 过去分词（被动），believed 要加 -ed' },
+          { wrong: 'The problem can solved.', correct: 'The problem can be solved.', note: '情态动词后的被动：can/must/should + be + 过去分词' },
+        ],
+        ieltsTip: `<p>📊 <strong>Writing Task 1：</strong>流程图中大量使用被动语态——"The raw materials are transported to the factory." 图表描述中 "It can be seen that..." 是标准开头。</p>
+          <p style="margin-top:6px;">📝 <strong>Writing Task 2：</strong>适当使用被动提升正式感——"It is often argued that..." / "More attention should be paid to..." ——但不要全文都用被动，要有主被动的平衡。</p>`,
+      },
+      {
+        id: 'conditional', icon: '🔀', title: '条件句', subtitle: 'Conditionals', level: 'B2',
+        summary: 'If 引导的条件句体系——零条件到混合条件，表达真实、假设、后悔等多种语义。',
+        rules: `<p><strong>零条件 (Zero)：If + 一般现在, 一般现在</strong> → 普遍真理/必然结果</p>
+          <p><strong>第一条件 (First)：If + 一般现在, will + 动词原形</strong> → 真实/可能的将来</p>
+          <p><strong>第二条件 (Second)：If + 一般过去, would + 动词原形</strong> → 现在/将来的假设（与事实相反）</p>
+          <p><strong>第三条件 (Third)：If + 过去完成, would have + 过去分词</strong> → 对过去的假设（无法改变的后悔）</p>
+          <p style="margin-top:10px;"><strong>混合条件：</strong>If + 过去完成（过去假设）, would + 动词原形（现在结果）</p>
+          <p>例：<em>If I had studied harder (past), I would be at university now (present).</em></p>`,
+        examples: [
+          { en: 'If the government invests more in education, the literacy rate will increase.', zh: '如果政府增加教育投入，识字率将会提高（第一条件，真实可能）。' },
+          { en: 'If I were the president, I would prioritize environmental protection.', zh: '如果我是总统，我会优先考虑环保（第二条件，与现在事实相反，用 were 不用 was）。' },
+          { en: 'If China had not opened its economy, it would not have achieved such rapid growth.', zh: '如果中国没有开放经济，就不会实现如此快速的增长（第三条件，对过去的假设）。' },
+        ],
+        mistakes: [
+          { wrong: 'If I will have time, I will go.', correct: 'If I have time, I will go.', note: '条件从句中不用 will，主句才用 will' },
+          { wrong: 'If I was rich, I would travel.', correct: 'If I were rich, I would travel.', note: '第二条件中 If I/he/she 后用 were（虚拟语气），虽然口语中 was 也可以接受' },
+          { wrong: 'If he studied, he would have passed.', correct: 'If he had studied, he would have passed.', note: '对过去的假设用第三条件，从句用过去完成时' },
+        ],
+        ieltsTip: `<p>📝 <strong>Writing Task 2：</strong>条件句是高分句型！论证中表达"如果……那么……"逻辑——"If governments fail to act, the consequences will be severe." 结尾段表达展望——"If these measures were implemented, the situation would improve significantly."</p>
+          <p style="margin-top:6px;">🏆 第二和第三条件句的使用频率与分数正相关（Band 7+ 的标志之一）。</p>`,
+      },
+      {
+        id: 'relative', icon: '🔗', title: '定语从句', subtitle: 'Relative Clauses', level: 'B1',
+        summary: 'who/which/that/whose/whom 引导的从句修饰名词，是扩充句子、提升表达密度的关键工具。',
+        rules: `<p><strong>关系代词：</strong>who（人-主语）、whom（人-宾语，正式）、which（物）、that（人物通用，限定性）、whose（所属）</p>
+          <p style="margin-top:10px;"><strong>限定性 vs 非限定性：</strong></p>
+          <p>限定性（不用逗号）：限定名词，去掉后句子不完整。<br><em>Students <strong>who cheat</strong> should be punished.</em>（只有作弊的学生应受罚）</p>
+          <p>非限定性（用逗号）：补充信息，去掉后句子仍完整。<br><em>My father, <strong>who is a doctor</strong>, works long hours.</em>（补充"我父亲是医生"的信息）</p>
+          <p style="margin-top:10px;"><strong>关键规则：</strong>非限定性不能用 that！</p>`,
+        examples: [
+          { en: 'People who exercise regularly tend to live longer.', zh: '经常锻炼的人往往更长寿（限定性定语从句）。' },
+          { en: 'The Internet, which has transformed modern life, also brings certain risks.', zh: '互联网改变了现代生活，但也带来了某些风险（非限定性，补充信息）。' },
+          { en: 'Students whose parents are involved in their education perform better.', zh: '那些父母参与其教育的学生表现更好（whose 表示所属）。' },
+        ],
+        mistakes: [
+          { wrong: 'The man which is standing there.', correct: 'The man who/that is standing there.', note: '人 → who/that，物 → which' },
+          { wrong: 'My mother, that is a teacher, retired.', correct: 'My mother, who is a teacher, retired.', note: '非限定性定语从句不能用 that' },
+          { wrong: 'The city where I was born in.', correct: 'The city where I was born. / The city that I was born in.', note: 'where = in which，不要重复加介词' },
+        ],
+        ieltsTip: `<p>📝 <strong>Writing Task 2：</strong>适当使用定语从句可以组合简单句为复杂句——将两个简单句合并为一句：<em>"Technology has many benefits. Technology also has drawbacks."</em> → <em>"Technology, which has many benefits, also has certain drawbacks."</em></p>
+          <p style="margin-top:6px;">🏆 非限定性定语从句是 Band 7+ GRA 评分的重要加分项。</p>`,
+      },
+      {
+        id: 'nounclause', icon: '🧩', title: '名词性从句', subtitle: 'Noun Clauses', level: 'B2',
+        summary: 'that/wh-/if 引导的从句充当主语、宾语、表语或同位语，是实现复杂句式的基础。',
+        rules: `<p><strong>四种名词性从句：</strong></p>
+          <p><strong>1. 主语从句：</strong>从句作主语。<br><em><strong>What the government decides</strong> will affect millions.</em></p>
+          <p><strong>2. 宾语从句：</strong>从句作宾语。<br><em>I believe <strong>that education is the key to success</strong>.</em></p>
+          <p><strong>3. 表语从句：</strong>从句在系动词后。<br><em>The problem is <strong>that few people are aware of the risks</strong>.</em></p>
+          <p><strong>4. 同位语从句：</strong>从句解释前面的名词。<br><em>The fact <strong>that obesity rates are rising</strong> is alarming.</em></p>
+          <p style="margin-top:10px;"><strong>引导词：</strong>that（陈述）、whether/if（是否）、what/which/who/when/where/why/how（疑问语义）</p>`,
+        examples: [
+          { en: 'What the chart reveals is a significant upward trend in urban migration.', zh: '图表所揭示的是城市移民的显著上升趋势（主语从句，Task 1 高级句型）。' },
+          { en: 'The fact that fast food is cheap does not mean it is healthy.', zh: '快餐便宜的事实并不意味着它是健康的（同位语从句）。' },
+          { en: 'Whether governments should fund the arts is a controversial issue.', zh: '政府是否应该资助艺术是一个有争议的问题（whether 引导的主语从句）。' },
+        ],
+        mistakes: [
+          { wrong: 'The reason is because...', correct: 'The reason is that...', note: 'The reason is that... 不用 because，that 引导表语从句' },
+          { wrong: 'It is important that he studies hard.', correct: 'It is important that he study hard.', note: 'It is important/necessary/essential that... 后用虚拟语气（动词原形）' },
+        ],
+        ieltsTip: `<p>📝 <strong>Task 2 高分句型：</strong>"<em>The fact that...</em>" 引出背景；"<em>What is more concerning is that...</em>" 递进论述；"<em>It is widely acknowledged that...</em>" 引出共识观点。名词性从句能让你的论证更有层次感。</p>`,
+      },
+      {
+        id: 'adverbial', icon: '📐', title: '状语从句', subtitle: 'Adverbial Clauses', level: 'B1',
+        summary: '时间/原因/目的/结果/让步/比较等状语从句，使逻辑关系更加明确和丰富。',
+        rules: `<p><strong>常见状语从句类型：</strong></p>
+          <p><strong>时间：</strong>when, while, as, before, after, since, until, as soon as<br><em>Interest in the topic grew <strong>as more research was published</strong>.</em></p>
+          <p><strong>原因：</strong>because, since, as, given that<br><em><strong>Since the data is limited</strong>, further studies are needed.</em></p>
+          <p><strong>让步：</strong>although, though, even though, while, whereas<br><em><strong>Although the cost is high</strong>, the long-term benefits justify it.</em></p>
+          <p><strong>目的：</strong>so that, in order that<br><em>Governments should act now <strong>so that future generations can thrive</strong>.</em></p>
+          <p><strong>结果：</strong>so...that, such...that<br><em>The problem is <strong>so severe that</strong> immediate action is required.</em></p>`,
+        examples: [
+          { en: 'Although many people support this view, others remain skeptical.', zh: '尽管许多人支持这一观点，但其他人仍持怀疑态度（让步状语从句）。' },
+          { en: 'The unemployment rate fell as the economy recovered.', zh: '随着经济复苏，失业率下降了（时间状语从句）。' },
+          { en: 'The issue is so complex that it requires a multi-faceted approach.', zh: '这个问题如此复杂，以至于需要多方面的解决方案（结果状语从句）。' },
+        ],
+        mistakes: [
+          { wrong: 'Although he is rich, but he is unhappy.', correct: 'Although he is rich, he is unhappy.', note: 'although 和 but 不能同时使用（中英差异——"虽然……但是……"不能直译）' },
+          { wrong: 'Because he was late, so he missed the bus.', correct: 'Because he was late, he missed the bus.', note: 'because 和 so 也不能同时使用' },
+        ],
+        ieltsTip: `<p>📝 <strong>Task 2 必备：</strong>让步状语从句（Although...）展示辩证思维——先承认反方观点，再转向自己立场。这是 Band 7+ 的典型论证模式。"<em>While/Whereas</em>" 用于对比观点，Coherence & Cohesion 的重要加分项。</p>`,
+      },
+      {
+        id: 'inversion', icon: '↕️', title: '倒装句', subtitle: 'Inversion', level: 'B2+',
+        summary: '否定词/Only 等置于句首引发的主谓倒装，是学术写作中最为高级的句式之一。',
+        rules: `<p><strong>何时使用倒装：</strong></p>
+          <p>1. <strong>否定副词/短语位于句首：</strong>never, rarely, seldom, hardly, barely, no sooner, not only, not until, under no circumstances, in no way, on no account...</p>
+          <p>结构：否定词/短语 + 助动词/情态动词 + 主语 + 主要动词</p>
+          <p>2. <strong>Only + 状语位于句首：</strong><em>Only then, Only later, Only by..., Only when..., Only if...</em></p>
+          <p>结构：Only + 状语 + 助动词/情态动词 + 主语 + 主要动词</p>
+          <p>3. <strong>So/Such...that 的倒装：</strong><em>So + adj + 助动词 + 主语 + that... / Such + 名词 + 助动词 + 主语 + that...</em></p>`,
+        examples: [
+          { en: 'Not only does recycling reduce waste, but it also conserves energy.', zh: '回收不仅减少浪费，而且节约能源（Not only 倒装——Task 2 高分句型）。' },
+          { en: 'Only by investing in renewable energy can we combat climate change effectively.', zh: '只有投资可再生能源，我们才能有效应对气候变化（Only by... 倒装）。' },
+          { en: 'So serious is the problem that governments must take immediate measures.', zh: '问题如此严重，政府必须立即采取措施（So...that 倒装）。' },
+          { en: 'Never has the gap between rich and poor been so wide.', zh: '贫富差距从未如此之大（Never 倒装）。' },
+        ],
+        mistakes: [
+          { wrong: 'Not only it reduces cost, but also improves quality.', correct: 'Not only does it reduce cost, but it also improves quality.', note: 'Not only 后需要部分倒装（助动词提前）' },
+          { wrong: 'Only when we work hard we can succeed.', correct: 'Only when we work hard can we succeed.', note: 'Only + 状语从句位于句首 → 主句需要倒装' },
+        ],
+        ieltsTip: `<p>🏆 <strong>倒装句是 GRA 冲 7.5+ 的"王牌句型"。</strong>Task 2 论证中精准使用 1-2 次即可显著提升语法范围评分。最实用：Not only...but also...→ 递进观点；Only by...→ 提出解决方案。</p>
+          <p style="margin-top:6px;">⚠️ 不要过度使用——一篇文章 1-2 个倒装句足矣，过度使用反而显得不自然。</p>`,
+      },
+      {
+        id: 'cleft', icon: '💎', title: '强调句', subtitle: 'Cleft Sentences', level: 'B2',
+        summary: 'It is...that... 和 What...is... 两种强调句式，用于突出句子中的特定信息。',
+        rules: `<p><strong>1. It 型强调句：It is/was + 被强调成分 + that/who + 其余部分</strong></p>
+          <p>可强调：主语、宾语、状语（时间/地点/方式等）。</p>
+          <p>例：原句 <em>I met her at the library yesterday.</em><br>
+          强调主语：<em>It was <strong>I</strong> who met her at the library yesterday.</em><br>
+          强调地点：<em>It was <strong>at the library</strong> that I met her yesterday.</em><br>
+          强调时间：<em>It was <strong>yesterday</strong> that I met her at the library.</em></p>
+          <p style="margin-top:10px;"><strong>2. What 型强调句：What + 从句 + is/was + 强调内容</strong></p>
+          <p>例：<em>What we need <strong>is</strong> more time.</em>（我们需要的是更多时间。）</p>`,
+        examples: [
+          { en: 'It is education that plays the most crucial role in breaking the cycle of poverty.', zh: '正是教育在打破贫困循环中起着最关键的作用。' },
+          { en: 'What most people fail to realize is that small daily habits lead to significant long-term changes.', zh: '大多数人未能意识到的是，微小的日常习惯会导致重大的长期变化。' },
+          { en: 'It is not money but time that is the scarcest resource in modern society.', zh: '现代社会最稀缺的资源不是金钱，而是时间。' },
+        ],
+        mistakes: [
+          { wrong: 'It was yesterday when I saw him.', correct: 'It was yesterday that I saw him.', note: 'It is/was... 强调句固定用 that（强调人时可用 who），不用 when/where' },
+          { wrong: 'What I want is go home.', correct: 'What I want is to go home.', note: 'What 从句后的补语需要正确形式（to go / going / that 从句）' },
+        ],
+        ieltsTip: `<p>📝 <strong>Task 2 开头段：</strong>"<em>It is often argued that...</em>" "<em>What matters most is that...</em>" 清晰引出话题和立场。</p>
+          <p style="margin-top:6px;">强调句让观点表达更有力度——"It is the government, rather than individuals, that should bear this responsibility." 能精准传达立场。</p>`,
+      },
+      {
+        id: 'nonfinite', icon: '🌊', title: '非谓语动词', subtitle: 'Non-finite Verbs', level: 'B2',
+        summary: '动名词、不定式、分词三大非谓语形式的用法，是句子多样性的核心来源。',
+        rules: `<p><strong>1. 动名词 (Gerund, V-ing 作名词)：</strong>作主语/宾语。<br><em><strong>Reading</strong> regularly improves vocabulary.</em>（阅读提高词汇量）</p>
+          <p><strong>2. 不定式 (Infinitive, to + V)：</strong>表目的/将来/一次性动作。<br><em>We need <strong>to act</strong> now.</em> / <em><strong>To improve</strong> accuracy, more data is required.</em></p>
+          <p><strong>3. 分词 (Participle)：</strong></p>
+          <p>- 现在分词 (V-ing)：主动/进行。<br><em><strong>Walking</strong> down the street, I noticed a new café.</em></p>
+          <p>- 过去分词 (V-ed)：被动/完成。<br><em><strong>Built</strong> in 1920, the building is now a museum.</em></p>
+          <p style="margin-top:10px;"><strong>分词短语作状语：</strong>可以表示时间、原因、伴随等，使句子更简洁高级。</p>`,
+        examples: [
+          { en: 'Having analyzed the data, the researchers concluded that the trend was irreversible.', zh: '分析了数据之后，研究者得出结论认为这一趋势不可逆转（现在分词完成式作时间状语）。' },
+          { en: 'To address this issue effectively, a combination of government policies and individual efforts is required.', zh: '为了有效解决这个问题，需要政府政策和个人努力的结合（不定式表目的）。' },
+          { en: 'Compared with traditional methods, the new approach yielded significantly better results.', zh: '与传统方法相比，新方法取得了显著更好的结果（过去分词作状语，Task 1 常用）。' },
+        ],
+        mistakes: [
+          { wrong: 'Look forward to see you.', correct: 'Look forward to seeing you.', note: 'look forward to 中的 to 是介词，后接动名词 V-ing' },
+          { wrong: 'Walking on the street, a car hit him.', correct: 'Walking on the street, he was hit by a car.', note: '分词短语的逻辑主语必须与主句主语一致（悬垂分词错误）' },
+        ],
+        ieltsTip: `<p>📊 <strong>Task 1：</strong>"<em>Compared with...</em>" "<em>Having risen sharply, the figure then leveled off.</em>" 分词结构是图表描述的基础工具。</p>
+          <p style="margin-top:6px;">📝 <strong>Task 2：</strong>不定式表目的——"<em>To tackle this problem, governments should...</em>" 逻辑清晰；分词作状语——"<em>Given the urgency of the issue, immediate action is warranted.</em>" 简洁有力。</p>`,
+      },
+      {
+        id: 'agreement', icon: '🤝', title: '主谓一致', subtitle: 'Subject-Verb Agreement', level: 'B1',
+        summary: '主语和谓语在数上保持一致，中国考生高频出错点——尤其是复杂主语和集合名词。',
+        rules: `<p><strong>基本原则：</strong>单数主语 → 单数动词（加 -s/-es）；复数主语 → 复数动词（不加 -s/-es）。</p>
+          <p style="margin-top:10px;"><strong>高频难点：</strong></p>
+          <p>1. <strong>介词短语不影响主语的数：</strong><em>The quality <strong>of these products</strong> <strong>is</strong> high.</em>（主语是 quality，不是 products）</p>
+          <p>2. <strong>Either/Neither + 单数名词 → 单数动词：</strong><em>Neither option <strong>is</strong> ideal.</em></p>
+          <p>3. <strong>Each/Every + 单数名词 → 单数动词：</strong><em>Every student <strong>has</strong> unique needs.</em></p>
+          <p>4. <strong>A number of + 复数名词 → 复数动词；The number of + 复数名词 → 单数动词：</strong><em>A number of students <strong>are</strong> absent. / The number of students <strong>is</strong> decreasing.</em></p>
+          <p>5. <strong>集合名词：</strong>family, team, government, committee → 英美用法不同（英式常用复数，美式偏单数）。</p>`,
+        examples: [
+          { en: 'The number of international students applying to UK universities has increased significantly.', zh: '申请英国大学的国际学生数量显著增加（The number of... + 单数动词）。' },
+          { en: 'Neither the students nor the teacher was aware of the change.', zh: '学生和老师都不知道这个变化（neither...nor... 就近原则）。' },
+          { en: 'Each of the participants was given a questionnaire.', zh: '每位参与者都收到了一份问卷（Each of + 复数名词 → 单数动词）。' },
+        ],
+        mistakes: [
+          { wrong: 'The government have decided...', correct: 'The government has decided...', note: 'IELTS 阅卷多为英联邦考官，但建议统一使用单数动词+集合名词以避免混淆' },
+          { wrong: 'There is many reasons for this.', correct: 'There are many reasons for this.', note: 'there be 句型主语在 be 之后——many reasons 是复数 → are' },
+          { wrong: 'One of the biggest problems are pollution.', correct: 'One of the biggest problems is pollution.', note: '主语是 One（单数），不是 problems' },
+        ],
+        ieltsTip: `<p>📝 <strong>Task 2 高频出错：</strong>"<em>One of the most significant issues are...</em>" ❌ → "<em>One of the most significant issues <strong>is</strong>...</em>" ✓</p>
+          <p style="margin-top:6px;">GRA 5-6 分和 7+ 分的分水岭之一就是基本语法错误频率——主谓一致错误是典型的基本语法错误，尽量减少可以显著提升 GRA 分数。</p>`,
+      },
+      {
+        id: 'subjunctive', icon: '🔮', title: '虚拟语气', subtitle: 'Subjunctive Mood', level: 'B2+',
+        summary: '表达愿望、建议、要求、假设等非事实语义，是正式学术写作中的重要语法手段。',
+        rules: `<p><strong>1. 与现在/将来事实相反的假设 → 过去式（were型）：</strong><br>
+          wish + 过去式: <em>I wish I <strong>knew</strong> the answer.</em><br>
+          as if/though + 过去式: <em>He talks as if he <strong>were</strong> the boss.</em><br>
+          If only + 过去式: <em>If only I <strong>had</strong> more time.</em></p>
+          <p><strong>2. 与过去事实相反的假设 → 过去完成式：</strong><br>
+          wish + had done: <em>I wish I <strong>had studied</strong> harder.</em><br>
+          If only + had done: <em>If only I <strong>had known</strong> earlier.</em></p>
+          <p><strong>3. 建议/要求/命令 → (should) + 动词原形（命令式虚拟）：</strong><br>
+          suggest/recommend/insist/demand/require + that + (should) do<br>
+          <em>I suggest that he <strong>(should) study</strong> abroad.</em></p>
+          <p><strong>4. It is + adj. + that + (should) do：</strong><br>
+          <em>It is essential that everyone <strong>(should) be</strong> informed.</em></p>`,
+        examples: [
+          { en: 'It is crucial that the government take immediate action to address climate change.', zh: '政府立即采取行动应对气候变化至关重要（命令式虚拟，take 不用 takes）。' },
+          { en: 'I wish more attention were paid to mental health in schools.', zh: '我希望学校能更多关注心理健康（wish + were 型虚拟，与现在事实相反）。' },
+          { en: 'If only the policy had been implemented earlier, the crisis could have been averted.', zh: '如果这项政策早点实施，危机本可以避免（与过去事实相反）。' },
+        ],
+        mistakes: [
+          { wrong: 'I suggest that he studies harder.', correct: 'I suggest that he (should) study harder.', note: 'suggest/recommend 后的 that 从句用动词原形（或 should + 原形）' },
+          { wrong: 'I wish I am taller.', correct: 'I wish I were taller.', note: 'wish 后虚拟语气用过去式（be → were）' },
+          { wrong: 'It is important that he arrives on time.', correct: 'It is important that he (should) arrive on time.', note: 'It is important/essential that... 后用虚拟语气' },
+        ],
+        ieltsTip: `<p>📝 <strong>Task 2 推荐句型：</strong>"<em>It is essential/vital/crucial that...</em>" 后接虚拟语气表达强烈建议；"<em>I wish...</em>" 表达对现状的不满和改进意愿。</p>
+          <p style="margin-top:6px;">🏆 命令式虚拟（suggest/recommend that sb (should) do）是学术写作的标志性语法结构，熟练使用可冲击 GRA 7.5+。</p>`,
+      },
+      {
+        id: 'comparative', icon: '⚖️', title: '比较结构', subtitle: 'Comparatives & Superlatives', level: 'B1',
+        summary: '比较级、最高级、as...as、the more...the more 等——Task 1 数据对比的核心工具。',
+        rules: `<p><strong>1. 比较级 (Comparative)：</strong></p>
+          <p>- 单音节/部分双音节词：adj + -er + than → <em>higher, bigger, easier</em><br>
+          - 多音节词：more + adj + than → <em>more expensive, more significant</em></p>
+          <p><strong>2. 最高级 (Superlative)：</strong>the + adj + -est / the most + adj</p>
+          <p><strong>3. 同级比较：</strong>as + adj + as → <em>as important as</em><br>
+          否定：not as/so + adj + as → <em>not as difficult as</em></p>
+          <p><strong>4. 特殊结构：</strong></p>
+          <p>- The + 比较级, the + 比较级: <em><strong>The more</strong> you practice, <strong>the better</strong> you become.</em></p>
+          <p>- 比较级 + and + 比较级: <em>The situation is getting <strong>worse and worse</strong>.</em></p>
+          <p>- 倍数表达: <em>twice as many as / three times more than</em></p>`,
+        examples: [
+          { en: 'The more individuals recycle, the less waste ends up in landfills.', zh: '个人回收得越多，最终填埋的垃圾就越少（The more...the more 结构）。' },
+          { en: 'The proportion of elderly people was twice as high in 2020 as in 1980.', zh: '2020年老年人口比例是1980年的两倍（倍数表达，Task 1 核心）。' },
+          { en: 'No other issue is as pressing as climate change in the 21st century.', zh: '21世纪没有比气候变化更紧迫的问题了（as...as 同级比较）。' },
+        ],
+        mistakes: [
+          { wrong: 'He is more taller than me.', correct: 'He is taller than me.', note: '比较级不能同时用 more 和 -er（双重比较错误）' },
+          { wrong: 'This is the most happiest day.', correct: 'This is the happiest day.', note: '最高级不能同时用 most 和 -est' },
+          { wrong: 'The number is three times more than last year.', correct: 'The number is three times that of last year.', note: '想表达"是去年的三倍"用 three times as many/much as' },
+        ],
+        ieltsTip: `<p>📊 <strong>Task 1 必备：</strong>比较级和最高级是数据描述的基础——"<em>The highest figure was recorded in...</em>" "<em>A was significantly higher than B.</em>" 没有比较结构的 Task 1 作文无法达到 Band 6+。</p>
+          <p style="margin-top:6px;">📝 <strong>Task 2：</strong>"<em>The more...the more...</em>" 结构用于论证因果递进关系，简洁有力。</p>`,
+      },
+    ];
+
+    const activeGrammarTopic = computed(() => {
+      return grammarTopics.find(t => t.id === selectedGrammarTopic.value) || null;
+    });
+
+    function selectGrammarTopic(id) {
+      selectedGrammarTopic.value = selectedGrammarTopic.value === id ? null : id;
+    }
+
+    // --- Sentence prompts ---
+    const sentencePrompts = [
+      { prompt: '用第二条件句（If I were..., I would...）造一个关于职业选择的句子。', point: '第二条件句' },
+      { prompt: '用现在完成时（have/has + 过去分词）描述你学习英语的经历。', point: '现在完成时' },
+      { prompt: '用定语从句（who/which/that）描述你最喜欢的一本书或一部电影。', point: '定语从句' },
+      { prompt: '用 Not only...but also... 的倒装结构造一个关于教育益处的句子。', point: '倒装句' },
+      { prompt: '用被动语态（be + 过去分词）描述一项发明或发现的诞生过程。', point: '被动语态' },
+      { prompt: '用 Although 引导的让步状语从句表达一个关于社交媒体的观点。', point: '让步状语从句' },
+      { prompt: '用 The more..., the more... 结构造一个关于练习与进步的句子。', point: '比较结构' },
+      { prompt: '用过去完成时（had + 过去分词）描述在你某个时间点之前已经完成的事。', point: '过去完成时' },
+      { prompt: '用 It is...that... 强调句突出你认为最重要的成功因素。', point: '强调句' },
+      { prompt: '用分词短语作状语（V-ing 或 V-ed 开头）描述一个事件的前因后果。', point: '非谓语动词' },
+      { prompt: '用 suggest/recommend that... (should) do 的虚拟语气提出一个关于环保的建议。', point: '虚拟语气' },
+      { prompt: '用 so...that... 结构描述一个问题的严重程度。', point: '结果状语从句' },
+      { prompt: '用 What 引导的主语从句表达你对幸福的理解。', point: '名词性从句' },
+      { prompt: '用 as...as 同级比较结构比较城市生活和乡村生活。', point: '比较结构' },
+      { prompt: '用第三条件句（If...had done..., ...would have done...）表达一件你后悔没做的事。', point: '第三条件句' },
+    ];
+
+    function randomSentencePrompt() {
+      const idx = Math.floor(Math.random() * sentencePrompts.length);
+      const p = sentencePrompts[idx];
+      sentencePrompt.value = p.prompt;
+      sentenceGrammarPoint.value = p.point;
+    }
+
+    // --- AI Sentence Check ---
+    const SENTENCE_CHECK_PROMPT = `你是一位资深英语语法教师，专门帮助雅思考生改进英文造句。请对用户的英文句子进行语法批改。
+
+## 评分标准（1-10分）
+- 9-10: 语法完全正确，表达自然地道，句型多样
+- 7-8: 语法正确，但表达可以更自然或更高级
+- 5-6: 有1-2处语法错误或表达不够自然
+- 3-4: 有明显语法错误，影响理解
+- 1-2: 多处严重语法错误
+
+## 输出要求（严格返回以下JSON格式）
+{
+  "score": 数字(1-10),
+  "summary": "一句话总体评价（中文）",
+  "original": "用户的原句",
+  "corrected": "修改后的正确/优化版本",
+  "feedback": "详细的语法点评（中文HTML），指出具体哪里错了、为什么错、语法规则是什么。如果没有错误，说明为什么这个句子写得好。可以包含<span style='color:var(--coral);'>错误标记</span>和<span style='color:var(--green);'>正确标记</span>",
+  "alternatives": ["同义表达1", "同义表达2"]
+}
+
+## 要求
+- 点评要具体，指出具体词/结构的问题，说明语法规则
+- 鼓励为主，但错误要明确指出
+- 如果句子完全正确，给出更高难度的改写建议
+- alternatives 提供2-3个同义表达方式`;
+
+    async function submitSentenceCheck() {
+      if (!userSentence.value.trim()) return;
+      sentenceLoading.value = true;
+      sentenceResult.value = null;
+
+      try {
+        const grammarContext = sentenceGrammarPoint.value ? `\n\n## 本次练习的语法点\n${sentenceGrammarPoint.value}` : '';
+        const userMessage = `## 造句任务\n${sentencePrompt.value || '自由造句'}${grammarContext}\n\n## 用户的句子\n${userSentence.value}\n\n请批改这个句子，返回JSON。`;
+
+        const response = await fetch(DEEPSEEK_URL, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${DEEPSEEK_KEY}`,
+            'Content-Type': 'application/json',
+            'anthropic-version': '2023-06-01',
+          },
+          body: JSON.stringify({
+            model: 'deepseek-v4-pro',
+            max_tokens: 1500,
+            temperature: 0.3,
+            thinking: { type: 'disabled' },
+            system: SENTENCE_CHECK_PROMPT,
+            messages: [{ role: 'user', content: userMessage }],
+          }),
+        });
+
+        if (!response.ok) {
+          const errText = await response.text().catch(() => '');
+          throw new Error(`API 错误 (${response.status}): ${errText.slice(0, 200)}`);
+        }
+
+        const data = await response.json();
+        const textParts = (data.content || []).filter(c => c.type === 'text').map(c => c.text);
+        const rawText = textParts.join('');
+
+        let result;
+        try {
+          result = JSON.parse(rawText);
+        } catch {
+          const m = rawText.match(/```(?:json)?\s*([\s\S]*?)```/) || rawText.match(/\{[\s\S]*\}/);
+          if (m) result = JSON.parse(m[1] || m[0]);
+          else throw new Error('无法解析AI返回');
+        }
+
+        result.score = Number(result.score);
+        result.alternatives = result.alternatives || [];
+        sentenceResult.value = result;
+      } catch (err) {
+        alert('批改失败：' + err.message + '\n\n请检查网络后重试。');
+        console.error('Sentence check error:', err);
+      } finally {
+        sentenceLoading.value = false;
+      }
+    }
+
+    // Initialize a random prompt
+    randomSentencePrompt();
+
     function navigate(page) {
       currentPage.value = page;
       sidebarOpen.value = false;
@@ -1784,7 +2676,11 @@ In conclusion, I firmly believe that unpaid community service should be part of 
       // Planner
       scoreOptions, plannerExamDate, plannerTargetScore, plannerBase,
       plannerTasks, plannerLoading, plannerStats, plannerWeeks,
-      generatePlan, togglePlannerTask, skillLabel, resetPlanner, exportPlanner
+      generatePlan, togglePlannerTask, skillLabel, resetPlanner, exportPlanner,
+      // Grammar
+      grammarTab, grammarTopics, selectedGrammarTopic, activeGrammarTopic,
+      selectGrammarTopic, userSentence, sentenceResult, sentenceLoading,
+      sentencePrompt, sentenceGrammarPoint, randomSentencePrompt, submitSentenceCheck
     };
   }
 }).mount('#app');
